@@ -39,21 +39,23 @@ INSTALLED_APPS = (
     "django.contrib.humanize",
 
     # 3rd party
+    "corsheaders",
     "django_extensions",
     "django_object_actions",
     "djcelery_email",
+    'import_export',
     "raven.contrib.django.raven_compat",
-    "storages",
-    "widget_tweaks",
-    "corsheaders",
     "rest_framework",
     "rest_framework_swagger",
-    'import_export',
     "social_django",
+    "storages",
+    "widget_tweaks",
 
     # custom apps
-    "api",
     "echo",
+    "campaign",
+    "character",
+    "player",
     "utils")
 
 MIDDLEWARE = (
