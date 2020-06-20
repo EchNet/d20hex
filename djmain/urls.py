@@ -23,7 +23,9 @@ urlpatterns = [
     path("register/", TemplateView.as_view(template_name="register.html"), name="register"),
     path("", include("social_django.urls")),
     path("admin/", admin.site.urls),
-    path("api/1.0/", include("api.urls")),
+    path("api/1.0/", include("campaign.urls")),
+    path("api/1.0/", include("character.urls")),
+    path("api/1.0/", include("player.urls")),
 ]
 
 if settings.SERVE_MEDIA:
