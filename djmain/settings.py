@@ -127,6 +127,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 AUTHENTICATION_BACKENDS = (
+    "social_core.backends.discord.DiscordOAuth2",
     "social_core.backends.facebook.FacebookOAuth2",
     "social_core.backends.facebook.FacebookAppOAuth2",
     "social_core.backends.google.GoogleOAuth2",
@@ -284,6 +285,8 @@ SOCIAL_AUTH_FACEBOOK_KEY = config("SOCIAL_AUTH_FACEBOOK_KEY", default="")
 SOCIAL_AUTH_FACEBOOK_SECRET = config("SOCIAL_AUTH_FACEBOOK_SECRET", default="")
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = config("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY", default="")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = config("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET", default="")
+SOCIAL_AUTH_DISCORD_KEY = config("SOCIAL_AUTH_DISCORD_KEY", default="")
+SOCIAL_AUTH_DISCORD_SECRET = config("SOCIAL_AUTH_DISCORD_SECRET", default="")
 SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.social_auth.social_details",
     "social_core.pipeline.social_auth.social_uid",
