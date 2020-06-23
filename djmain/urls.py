@@ -8,6 +8,7 @@ from django.views.generic import TemplateView
 
 import djmain.forms as forms
 import djmain.views as views
+import djmain.api_views as api_views
 
 urlpatterns = [
     path("", views.HomeView.as_view(template_name="home.html"), name="home"),
@@ -20,9 +21,14 @@ urlpatterns = [
     path("login-error/",
          TemplateView.as_view(template_name="login-error.html"),
          name="login-error"),
-    path("register/", TemplateView.as_view(template_name="register.html"), name="register"),
+    path("login/",
+         auth_views.LoginView.as_view(template_name="login.html",
+                                      authentication_form=forms.LoginForm,
+                                      redirect_authenticated_user=True),
+         name="login"),
     path("", include("social_django.urls")),
     path("admin/", admin.site.urls),
+    path("api/1.0/who", api_views.WhoAmIView.as_view()),
     path("api/1.0/", include("campaign.urls")),
     path("api/1.0/", include("character.urls")),
     path("api/1.0/", include("player.urls")),
