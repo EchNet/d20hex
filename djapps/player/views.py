@@ -6,6 +6,11 @@ from .serializers import PlayerSerializer
 from .permissions import (IsSuperuser, IsTheUser)
 
 
+class CreatePlayerView(generics.CreateAPIView):
+  serializer_class = PlayerSerializer
+  permission_classes = (permissions.IsAuthenticated, )
+
+
 class PlayerView(generics.RetrieveUpdateDestroyAPIView):
   serializer_class = PlayerSerializer
   permission_classes = (permissions.AllowAny, )

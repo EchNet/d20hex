@@ -3,11 +3,55 @@
 {% block load-first %}
   {{ block.super }}
   <style>
-    header, footer {
-      text-align: right;
+    html, body {
+      height: 100%;
+      margin: 0;
     }
-    div: {
-      margin: 30px;
+    div.body {
+      display: flex;
+      flex-flow: column;
+      height: 100%;
+    }
+    header {
+      flex: 0 1 36px;
+      position: relative;
+      background-color: green;
+      border: solid 1px green;
+      color: white;
+      width: 100%;
+    }
+    .rightHeader {
+      position: absolute;
+      width: 100%;
+      text-align: right;
+      padding-right: 5px;
+      font-size: 16px;
+    }
+    .leftHeader {
+      position: absolute;
+      top: 4px;
+      width: 100%;
+      padding-left: 5px;
+      font-size: 18px;
+    }
+    section#root {
+      flex: 1 1 auto;
+    }
+    footer {
+      flex: 0 1 30px;
+      font-size: 10px;
+      text-align: center;
+    }
+    button {
+      padding: 0 2px;
+      border-radius: 6px;
+      border: groove 3px gray;
+      background-color: white;
+      margin-left: 3px;
+    }
+    hr {
+      padding: 0;
+      margin: 0;
     }
   </style>
   {% for stylesheet in stylesheets %}
@@ -16,12 +60,30 @@
 {% endblock %}
 
 {% block content %}
-  <header>{% if user.is_authenticated %}<a href="{% url 'logout' %}">Log out</a>{% endif %}</header>
-  <div>A few of {% if user.first_name %}{{ user.first_name }}'s{% else %}my{% endif %} favorite things...</div>
-  <div id="root">
-    {% for script in scripts %}
-      <script src="{{ script }}"></script>
-    {% endfor %}
+  <div class="body">
+    <header>
+      <div class="leftHeader">
+        d20hex
+      </div>
+      {% if user.is_authenticated %}
+        <div class="rightHeader">
+          {% if user.first_name %}
+            Hi, {{ user.first_name }}.
+          {% elif user.email %}
+            Hi, {{ user.email }}.
+          {% endif %}
+          <a href="{% url 'logout' %}"><button>Log out</button></a>
+        </div>
+      {% endif %}
+    </header>
+    <section id="root">
+      {% for script in scripts %}
+        <script src="{{ script }}"></script>
+      {% endfor %}
+    </section>
+    <footer>
+      <hr/>
+      Footer info.
+    </footer>
   </div>
-  <footer></footer>
 {% endblock content %}
