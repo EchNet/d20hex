@@ -40,6 +40,13 @@ class ApiConnector {
   createCampaignForPlayer(player, campaignName) {
     return this._doPost(`/api/1.0/campaign`, { "creator": player.id, "name": campaignName })
   }
+  listCharactersForPlayerAndCampaign(player, campaign) {
+    return this._doGet(`/api/1.0/player/${player.id}/characters?campaign=${campaign.id}`)
+  }
+  createPlayerCharacter(player, campaign, characterName) {
+    return this._doPost(`/api/1.0/character`, {
+        "player": player.id, "campaign": campaign.id, "name": characterName })
+  }
 }
 
 export const apiConnector = new ApiConnector()
