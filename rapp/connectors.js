@@ -30,11 +30,17 @@ class ApiConnector {
   whoAmI() {
     return this._doGet("/api/1.0/who")
   }
-  listPlayersForUser(userId) {
-    return this._doGet(`/api/1.0/user/${userId}/players`)
+  listPlayersForUser(user) {
+    return this._doGet(`/api/1.0/user/${user.id}/players`)
   }
-  createPlayerForUser(userId, name) {
-    return this._doPost(`/api/1.0/player`, { "user": userId, "name": name })
+  createPlayerForUser(user, playerName) {
+    return this._doPost(`/api/1.0/player`, { "user": user.id, "name": playerName })
+  }
+  listCampaignsForPlayer(player) {
+    return this._doGet(`/api/1.0/player/${player.id}/campaigns`)
+  }
+  createCampaignForPlayer(player, campaignName) {
+    return this._doPost(`/api/1.0/campaign`, { "creator": player.id, "name": campaignName })
   }
 }
 

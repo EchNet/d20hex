@@ -1,4 +1,5 @@
 import * as React from "react"
+import { connect } from 'react-redux';
 
 import { apiConnector, echoConnector } from "./connectors"
 import { actions } from "./constants"
@@ -25,7 +26,10 @@ export class Onboarding extends React.Component {
     const handlePlayerFormSubmit = (event) => {
       event.preventDefault()
       if (this.state.playerNameInput.length) {
-        this.props.dispatch({ type: actions.CREATE_PLAYER, name: this.state.playerNameInput })
+        this.props.dispatch({
+          type: actions.CREATE_PLAYER,
+          props: { name: this.state.playerNameInput }
+        })
       }
     }
 
@@ -54,13 +58,91 @@ export class Onboarding extends React.Component {
   }
 }
 
-export class PlayerLobby extends React.Component {
+class PlayerLobbyComponent extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      campaignNameInput: "",
+      currentCampaignOption: null
+    }
+  }
   render() {
+    const props = this.props;
+    const state = this.state;
+
+    const handleCampaignNameChange = (event) => {
+      this.setState({ campaignNameInput: event.target.value })
+    }
+
+    const handleCampaignFormSubmit = (event) => {
+      event.preventDefault()
+      if (state.campaignNameInput.length) {
+        this.props.dispatch({
+          type: actions.CREATE_CAMPAIGN,
+          props: { name: state.campaignNameInput }
+        })
+      }
+    }
+
+    const handleCurrentCampaignOptionChange = (event) => {
+      const campaignId = event.target.value;
+      for (var i = 0; i < props.campaigns.length; ++i) {
+        if (props.campaigns[i].id == campaignId) {
+          this.setState({ currentCampaignOption: props.campaigns[i] })
+          return;
+        }
+      }
+      this.setState({ currentCampaignOption: null })
+    }
+
+    const handleSelectCampaignFormSubmit = (event) => {
+      event.preventDefault()
+      if (state.currentCampaignOption) {
+        props.dispatch({
+          type: actions.SELECT_CAMPAIGN,
+          campaign: state.currentCampaignOption
+        })
+      }
+    }
+
+    function renderCampaignSelect() {
+      return (
+        <form onSubmit={handleSelectCampaignFormSubmit}>
+          <div>
+            Select a campaign
+            <select onChange={handleCurrentCampaignOptionChange}>
+              { props.campaigns.map((ele) => <option key={ele.id} value={ele.id}>{ele.name}</option>) }
+            </select>
+            <button type="submit">
+              Go
+            </button>
+          </div>
+        </form>
+      )
+    }
+
     return (
-      <div className="PlayerLobby">Lobby of player {this.props.player.name}</div>
+      <div className="PlayerLobby">
+        <div>Player: {this.props.player.name}</div>
+        { (!this.props.campaigns || !this.props.campaigns.length) && <div>No campaigns yet.</div> }
+        { !!this.props.campaigns && !!this.props.campaigns.length && renderCampaignSelect() }
+        <div>
+          <form onSubmit={handleCampaignFormSubmit}>
+            <input onChange={handleCampaignNameChange} placeholder="New campaign name"/>
+            <button type="submit" disabled={state.campaignNameInput.length ? "" : "disabled"}>
+              Submit
+            </button>
+          </form>
+        </div>
+        { !!props.campaign && <div>This is the {props.campaign.name} campaign.</div> }
+      </div>
     )
   }
 }
+const mapState = (state) => {
+  return Object.assign({}, state);
+}
+export const PlayerLobby = connect(mapState)(PlayerLobbyComponent)
 
 export class ErrorScreen extends React.Component {
   render() {

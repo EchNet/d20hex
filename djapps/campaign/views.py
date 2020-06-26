@@ -1,9 +1,16 @@
-from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, views
 
+from player.models import Player
+
+from .models import Campaign
 from .serializers import CampaignSerializer
-from .permissions import (IsSuperuser, IsTheUser)
+from .permissions import (IsSuperuser, IsPlayerOwner)
+
+
+class CreateCampaignView(generics.CreateAPIView):
+  serializer_class = CampaignSerializer
+  permission_classes = (permissions.IsAuthenticated, )
 
 
 class CampaignView(generics.RetrieveUpdateDestroyAPIView):
@@ -17,12 +24,12 @@ class CampaignView(generics.RetrieveUpdateDestroyAPIView):
     return campaign
 
 
-class UserCampaignsView(generics.ListAPIView):
+class PlayerCampaignsView(generics.ListAPIView):
   serializer_class = CampaignSerializer
-  permission_classes = (IsSuperuser | IsTheUser, )
+  permission_classes = (IsSuperuser | IsPlayerOwner, )
 
   def get_queryset(self):
-    user_id = self.kwargs.get("user_id")
-    user = get_object_or_404(get_user_model().objects.all(), id=user_id)
-    self.check_object_permissions(self.request, user)
-    return user.campaigns.all()
+    player_id = self.kwargs.get("player_id")
+    player = get_object_or_404(Player.objects.all(), id=player_id)
+    self.check_object_permissions(self.request, player)
+    return Campaign.objects.filter(player_memberships__player=player)
