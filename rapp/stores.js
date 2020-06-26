@@ -5,7 +5,8 @@ import { actions } from "./constants"
 let DEBUG = true;
 
 function stateReducer(state = 0, action) {
-  if (DEBUG) console.log(state, action)
+  if (DEBUG) console.log("ACTION", state, action)
+  if (!action.type) throw "null action type";
   switch (action.type) {
   // User actions:
   case actions.START_APP:
@@ -14,6 +15,8 @@ function stateReducer(state = 0, action) {
     return createPlayer(state, action.props)
   case actions.CREATE_CAMPAIGN:
     return createCampaign(state, action.props)
+  case actions.CREATE_CHARACTER:
+    return createCharacter(state, action.props)
   case actions.SELECT_CAMPAIGN:
     return selectCampaign(state, action.campaign)
   // API response actions:
@@ -23,18 +26,23 @@ function stateReducer(state = 0, action) {
     return playersKnown(state, action.data)
   case actions.CAMPAIGNS_KNOWN:
     return campaignsKnown(state, action.data)
+  case actions.CHARACTERS_KNOWN:
+    return charactersKnown(state, action.data)
   case actions.PLAYER_CREATED:
     return playerCreated(state, action.data)
   case actions.CAMPAIGN_CREATED:
     return campaignCreated(state, action.data)
+  case actions.CHARACTER_CREATED:
+    return characterCreated(state, action.data)
   case actions.FATAL_ERROR:
     return fatalError(state, action.error)
   }
+  if (DEBUG) console.log("warning: action unhandled")
   return state || {};
 }
 
 export const store = createStore(stateReducer)
-store.subscribe(() => DEBUG && console.log(store.getState()))
+store.subscribe(() => DEBUG && console.log("NEW STATE", store.getState()))
 store.dispatch({ type: actions.START_APP })
 
 //=============================================
@@ -56,8 +64,16 @@ function createCampaign(state, props) {
   return showApiBlock(state)
 }
 
+function createCharacter(state, props) {
+  handleApiCall(apiConnector.createPlayerCharacter(state.player, state.campaign, props.name),
+                actions.CHARACTER_CREATED)
+  return showApiBlock(state)
+}
+
 function selectCampaign(state, campaign) {
-  return updateState(state, { campaign })
+  handleApiCall(apiConnector.listCharactersForPlayerAndCampaign(state.player, campaign),
+                actions.CHARACTERS_KNOWN)
+  return updateState(state, { campaign, characters: null })
 }
 
 //=============================================
@@ -71,28 +87,41 @@ function playersKnown(state, players) {
   players = players || [];
   const player = players.length ? players[0] : null;
   state = updateState(state, { player, players, campaigns: null })
+  state = unshowApiBlock(state)
   if (player) {
-    return listCampaignsForPlayer(state)
+    state = listCampaignsForPlayer(state)
   }
-  else {
-    return unshowApiBlock(state)
-  }
-}
-
-function playerCreated(state, player) {
-  return unshowApiBlock(updateState(state, { players: [ player ], player }))
+  return state;
 }
 
 function campaignsKnown(state, campaigns) {
-  return unshowApiBlock(updateState(state, { campaigns: campaigns || [] }))
+  state = updateState(state, { campaigns: campaigns || [] })
+  return unshowApiBlock(state)
+}
+
+function charactersKnown(state, characters) {
+  state = updateState(state, { characters: characters || [] })
+  return unshowApiBlock(state)
+}
+
+function playerCreated(state, player) {
+  state = updateState(state, { players: [ player ], player })
+  return unshowApiBlock(state)
 }
 
 function campaignCreated(state, campaign) {
-  return listCampaignsForPlayer(updateState(state, { campaign }))
+  state = updateState(state, { campaign, campaigns: (state.campaigns || []).concat(campaign) })
+  return unshowApiBlock(state)
+}
+
+function characterCreated(state, character) {
+  state = updateState(state, { character, characters: (state.characters || []).concat(character) })
+  return unshowApiBlock(state)
 }
 
 function fatalError(state, error) {
-  return updateState(state, { error: error, apiblocked: false })
+  state = updateState(state, { error: error })
+  return unshowApiBlock(state)
 }
 
 //=============================================

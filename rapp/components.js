@@ -87,6 +87,7 @@ class PlayerLobbyComponent extends React.Component {
     const handleCurrentCampaignOptionChange = (event) => {
       const campaignId = event.target.value;
       for (var i = 0; i < props.campaigns.length; ++i) {
+        console.log(props.campaigns[i]);
         if (props.campaigns[i].id == campaignId) {
           this.setState({ currentCampaignOption: props.campaigns[i] })
           return;
@@ -97,10 +98,14 @@ class PlayerLobbyComponent extends React.Component {
 
     const handleSelectCampaignFormSubmit = (event) => {
       event.preventDefault()
-      if (state.currentCampaignOption) {
+      let campaign = state.currentCampaignOption;
+      if (!campaign && props.campaigns.length) {
+        campaign = this.props.campaigns[0];
+      }
+      if (campaign) {
         props.dispatch({
           type: actions.SELECT_CAMPAIGN,
-          campaign: state.currentCampaignOption
+          campaign: campaign
         })
       }
     }
@@ -110,10 +115,10 @@ class PlayerLobbyComponent extends React.Component {
         <form onSubmit={handleSelectCampaignFormSubmit}>
           <div>
             Select a campaign
-            <select onChange={handleCurrentCampaignOptionChange}>
+            <select onChange={handleCurrentCampaignOptionChange} value={state.currentCampaignOption ? state.currentCampaignOption.id : ""}>
               { props.campaigns.map((ele) => <option key={ele.id} value={ele.id}>{ele.name}</option>) }
             </select>
-            <button type="submit">
+            <button type="submit" disabled={props.campaigns.length ? "" : "disabled"}>
               Go
             </button>
           </div>
@@ -134,7 +139,7 @@ class PlayerLobbyComponent extends React.Component {
             </button>
           </form>
         </div>
-        { !!props.campaign && <div>This is the {props.campaign.name} campaign.</div> }
+        { !!props.campaign && <CampaignView/> }
       </div>
     )
   }
@@ -143,6 +148,60 @@ const mapState = (state) => {
   return Object.assign({}, state);
 }
 export const PlayerLobby = connect(mapState)(PlayerLobbyComponent)
+
+class CampaignViewComponent extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      characterNameInput: "",
+    }
+  }
+  render() {
+    const props = this.props;
+    const state = this.state;
+
+    const handleCharacterNameChange = (event) => {
+      this.setState({ characterNameInput: event.target.value })
+    }
+
+    const handleCharacterFormSubmit = (event) => {
+      event.preventDefault()
+      if (state.characterNameInput.length) {
+        this.props.dispatch({
+          type: actions.CREATE_CHARACTER,
+          props: { name: state.characterNameInput }
+        })
+      }
+      this.setState({ characterNameInput: "" })
+    }
+
+    const renderCharacterList = () => {
+      return (
+        <div>
+          <div>Your characters</div>
+          { this.props.characters.map((ele) => <div key={ele.id}>{ele.name}</div>) }
+        </div>
+      )
+    }
+
+    return (
+      <div className="CampaignView">
+        <div>Campaign: {this.props.campaign.name}</div>
+        { (!this.props.characters || !this.props.characters.length) && <div>No characters yet.</div> }
+        { !!this.props.characters && !!this.props.characters.length && renderCharacterList() }
+        <div>
+          <form onSubmit={handleCharacterFormSubmit}>
+            <input onChange={handleCharacterNameChange} value={state.characterNameInput} placeholder="New character name"/>
+            <button type="submit" disabled={state.characterNameInput.length ? "" : "disabled"}>
+              Submit
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+}
+export const CampaignView = connect(mapState)(CampaignViewComponent)
 
 export class ErrorScreen extends React.Component {
   render() {

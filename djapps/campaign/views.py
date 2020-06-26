@@ -1,3 +1,4 @@
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, views
 
@@ -7,10 +8,24 @@ from .models import Campaign
 from .serializers import CampaignSerializer
 from .permissions import (IsSuperuser, IsPlayerOwner)
 
+MAX_CAMPAIGNS_PER_PLAYER = 20
+
 
 class CreateCampaignView(generics.CreateAPIView):
   serializer_class = CampaignSerializer
-  permission_classes = (permissions.IsAuthenticated, )
+  permission_classes = (
+      permissions.IsAuthenticated,
+      IsPlayerOwner,
+  )
+
+  def perform_create(self, serializer):
+    player_id = self.request.data.get("player", None)
+    player = Player.objects.get(id=player_id)
+    self.check_object_permissions(self.request, player)
+    campaigns_per_player = Campaign.objects.filter(creator=player).count()
+    if campaigns_per_player >= MAX_CAMPAIGNS_PER_PLAYER:
+      raise PermissionDenied(detail="Maximum number of campaigns per player has been reached.")
+    return super().perform_create(serializer)
 
 
 class CampaignView(generics.RetrieveUpdateDestroyAPIView):
