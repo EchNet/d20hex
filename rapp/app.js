@@ -9,7 +9,7 @@ export class App extends React.Component {
     return (
       <div className="RootContainer">
         { !this.props.player && this.props.user && <Onboarding dispatch={this.props.dispatch}/> }
-        { this.props.player && <PlayerLobby player={this.props.player}/> }
+        { this.props.player && <PlayerLobby/> }
         { this.props.apiblocked && <WaitScreen/> }
         { this.props.error && <ErrorScreen error={this.props.error}/> }
       </div>

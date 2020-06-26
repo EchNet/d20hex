@@ -10,6 +10,6 @@ class IsSuperuser(permissions.BasePermission):
     return self.has_permission(request, view)
 
 
-class IsTheUser(permissions.BasePermission):
+class IsPlayerOwner(permissions.BasePermission):
   def has_object_permission(self, request, view, obj):
-    return obj == request.user
+    return obj.user == request.user
