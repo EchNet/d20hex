@@ -1,18 +1,16 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}d20hex{% endblock %}
+{% block title %}d20hex login{% endblock %}
 
-{% block content %}
-  <div class="main text-center"><div class="wrapper">
-    <h1>d20hex</h1>
-    <p>Here are your choices.</p>
-    <p><a href="{% url "social:begin" "discord" %}">Login with your Discord account</a></p>
-    <p><a href="{% url "social:begin" "facebook" %}">Login with your Facebook account</a></p>
-    <div><small>By logging in through one of these identity providers, you are granting d20hex access to your name and email address.</small></div>
-  </div></div>
+{% block load-first %}
+  {{ block.super }}
   <style>
     html, body {
       height: 100%;
+    }
+    h1 {
+      color: #bbb;
     }
     .main {
       height: 100%;
@@ -26,5 +24,19 @@
       height: 100%;
       vertical-align: middle;
     }
+    a[href] {
+      color: #060;
+    }
   </style>
+{% endblock load-first %}
+
+{% block content %}
+  <div class="main text-center"><div class="wrapper">
+    <div><img src="{% static 'img/logo.png' %}" height="100" alt="d20hex" /></div>
+    <h1>Login</h1>
+    <p>Here are your choices.</p>
+    <p><a href="{% url "social:begin" "discord" %}">Login with your Discord account</a></p>
+    <p><a href="{% url "social:begin" "facebook" %}">Login with your Facebook account</a></p>
+    <p><small><a href="https://discord.com">Get a discord account</a></small></p>
+  </div></div>
 {% endblock content %}
