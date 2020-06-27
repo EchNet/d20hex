@@ -19,6 +19,8 @@ function stateReducer(state = 0, action) {
     return createCharacter(state, action.props)
   case actions.SELECT_CAMPAIGN:
     return selectCampaign(state, action.campaign)
+  case actions.CLOSE_CAMPAIGN:
+    return closeCampaign(state)
   // API response actions:
   case actions.USER_KNOWN:
     return userKnown(state, action.data)
@@ -71,9 +73,16 @@ function createCharacter(state, props) {
 }
 
 function selectCampaign(state, campaign) {
-  handleApiCall(apiConnector.listCharactersForPlayerAndCampaign(state.player, campaign),
-                actions.CHARACTERS_KNOWN)
-  return updateState(state, { campaign, characters: null })
+  if (!state.campaign || state.campaign.id != campaign.id) {
+    handleApiCall(apiConnector.listCharactersForPlayerAndCampaign(state.player, campaign),
+                  actions.CHARACTERS_KNOWN)
+    state = updateState(state, { campaign, characters: null })
+  }
+  return state
+}
+
+function closeCampaign(state) {
+  return updateState(state, { campaign: null, characters: null })
 }
 
 //=============================================

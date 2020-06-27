@@ -90,49 +90,8 @@ class PlayerLobbyComponent extends React.Component {
       this.setState({ currentCampaignOption: null })
     }
 
-    const handleSelectCampaignFormSubmit = (event) => {
-      event.preventDefault()
-      let campaign = state.currentCampaignOption;
-      if (!campaign && props.campaigns.length) {
-        campaign = this.props.campaigns[0];
-      }
-      if (campaign) {
-        props.dispatch({
-          type: actions.SELECT_CAMPAIGN,
-          campaign: campaign
-        })
-      }
-    }
-
-    function renderCampaignSelect() {
-      return (
-        <form onSubmit={handleSelectCampaignFormSubmit}>
-          <div>
-            Select a campaign
-            <select onChange={handleCurrentCampaignOptionChange} value={state.currentCampaignOption ? state.currentCampaignOption.id : ""}>
-              { props.campaigns.map((ele) => <option key={ele.id} value={ele.id}>{ele.name}</option>) }
-            </select>
-            <button type="submit" disabled={props.campaigns.length ? "" : "disabled"}>
-              Go
-            </button>
-          </div>
-        </form>
-      )
-    }
-
     return (
       <div className="PlayerLobby">
-        <div>Player: {this.props.player.name}</div>
-        { (!this.props.campaigns || !this.props.campaigns.length) && <div>No campaigns yet.</div> }
-        { !!this.props.campaigns && !!this.props.campaigns.length && renderCampaignSelect() }
-        <div>
-          <form onSubmit={handleCampaignFormSubmit}>
-            <input onChange={handleCampaignNameChange} placeholder="New campaign name"/>
-            <button type="submit" disabled={state.campaignNameInput.length ? "" : "disabled"}>
-              Submit
-            </button>
-          </form>
-        </div>
         { !!props.campaign && <CampaignView/> }
       </div>
     )
@@ -180,7 +139,8 @@ class CampaignViewComponent extends React.Component {
 
     return (
       <div className="CampaignView">
-        <div>Campaign: {this.props.campaign.name}</div>
+        <div><a href="#" onClick={() => this.backToLobby()}>Back to lobby</a></div>
+        <h2>My Characters</h2>
         { (!this.props.characters || !this.props.characters.length) && <div>No characters yet.</div> }
         { !!this.props.characters && !!this.props.characters.length && renderCharacterList() }
         <div>
@@ -193,6 +153,9 @@ class CampaignViewComponent extends React.Component {
         </div>
       </div>
     )
+  }
+  backToLobby() {
+    this.props.dispatch({ type: actions.CLOSE_CAMPAIGN })
   }
 }
 export const CampaignView = connect(mapState)(CampaignViewComponent)

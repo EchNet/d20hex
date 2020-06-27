@@ -1,0 +1,42 @@
+.CampaignPicker .campaignListBox {
+  margin-bottom: 20px;
+}
+
+.CampaignPicker .campaignView {
+  margin-top: 10px;
+  border-radius: 10px;
+  border: solid 2px #777;
+  padding: 20px;
+  cursor: pointer;
+}
+
+.CampaignPicker .campaignView:hover {
+  border: solid 2px #dd7;
+}
+
+.CampaignPicker .campaignView .campaignIconView {
+  width: 60px;
+  height: 60px;
+  border: solid 1px black;
+  float: left;
+  margin-right: 20px;
+  background-color: #6699ff;
+}
+
+.CampaignPicker .campaignView .campaignNameView {
+  color: black;
+  font-size: 20px;
+}
+
+.CampaignPicker .push-top {
+  margin-top: 40px;
+}
+
+.CampaignPicker .ModalScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(198, 198, 198, 0.5);
+}

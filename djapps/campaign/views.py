@@ -50,4 +50,4 @@ class PlayerCampaignsView(generics.ListAPIView):
     player_id = self.kwargs.get("player_id")
     player = get_object_or_404(Player.objects.all(), id=player_id)
     self.check_object_permissions(self.request, player)
-    return Campaign.objects.filter(player_memberships__player=player)
+    return Campaign.objects.select_related("creator").filter(player_memberships__player=player)
