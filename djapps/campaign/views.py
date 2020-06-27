@@ -5,10 +5,15 @@ from rest_framework import generics, permissions, views
 from player.models import Player
 
 from .models import Campaign
-from .serializers import CampaignSerializer
 from .permissions import (IsSuperuser, IsPlayerOwner)
+from .serializers import CampaignSerializer
 
-MAX_CAMPAIGNS_PER_PLAYER = 20
+
+def check_campaigns_created_limit(creator):
+  MAX_CAMPAIGNS_PER_PLAYER = 20
+  campaigns_created = Campaign.objects.filter(creator=creator).count()
+  if campaigns_created >= MAX_CAMPAIGNS_PER_PLAYER:
+    raise PermissionDenied(detail="Maximum number of campaigns per player has been reached.")
 
 
 class CreateCampaignView(generics.CreateAPIView):
@@ -19,12 +24,10 @@ class CreateCampaignView(generics.CreateAPIView):
   )
 
   def perform_create(self, serializer):
-    player_id = self.request.data.get("player", None)
-    player = Player.objects.get(id=player_id)
-    self.check_object_permissions(self.request, player)
-    campaigns_per_player = Campaign.objects.filter(creator=player).count()
-    if campaigns_per_player >= MAX_CAMPAIGNS_PER_PLAYER:
-      raise PermissionDenied(detail="Maximum number of campaigns per player has been reached.")
+    creator_id = self.request.data.get("creator")
+    creator = get_object_or_404(Player.objects.all(), id=creator_id)
+    self.check_object_permissions(self.request, creator)
+    check_campaigns_created_limit(creator)
     return super().perform_create(serializer)
 
 
