@@ -1,7 +1,8 @@
 import * as React from "react"
 import { connect } from 'react-redux';
 
-import { Onboarding, PlayerLobby, WaitScreen, ErrorScreen } from "./components";
+import { Onboarding, PlayerLobby, ErrorScreen } from "./components";
+import { WaitScreen } from "./WaitScreen";
 
 
 export class App extends React.Component {

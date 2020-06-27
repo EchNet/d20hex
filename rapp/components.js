@@ -4,12 +4,6 @@ import { connect } from 'react-redux';
 import { apiConnector } from "./connectors"
 import { actions } from "./constants"
 
-export class WaitScreen extends React.Component {
-  render() {
-    return <div className="Waiting">Waiting</div>
-  }
-}
-
 export class Onboarding extends React.Component {
   constructor(props) {
     super(props)
