@@ -8,10 +8,11 @@
       height: 100%;
       margin: 0;
     }
-    img {
-      border: solid 1px #555;
+    img.logo {
+      border: solid 2px #777;
     }
     div.body {
+      margin: 10px 10px 0;
       display: flex;
       flex-flow: column;
       height: 100%;
@@ -25,18 +26,8 @@
       width: 100%;
     }
     .rightHeader {
-      position: absolute;
-      width: 100%;
       text-align: right;
-      padding-right: 5px;
       font-size: 16px;
-    }
-    .leftHeader {
-      position: absolute;
-      top: 4px;
-      width: 100%;
-      padding-left: 5px;
-      font-size: 18px;
     }
     section#root {
       flex: 1 1 auto;
@@ -66,7 +57,7 @@
 {% block content %}
   <div class="body">
     <header>
-      <div><img src="{% static 'img/logo.png' %}" height="120" alt="d20hex" /></div>
+      <div><img class="logo" src="{% static 'img/logo.png' %}" height="120" alt="d20hex" /></div>
       {% if user.is_authenticated %}
         <div class="rightHeader">
           {% if user.players.all.exists %}
@@ -89,7 +80,13 @@
     </section>
     <footer>
       <hr/>
-      Footer info.
+      Terms of Service &amp; Privacy Policy
+       ·
+      DMCA
+       ·
+      Support
+       ·
+      Contact Us
     </footer>
   </div>
 {% endblock content %}

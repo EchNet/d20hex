@@ -1,8 +1,9 @@
 import * as React from "react"
 import { connect } from 'react-redux';
 
-import { Onboarding, PlayerLobby, ErrorScreen } from "./components";
+import { CampaignPicker } from "./CampaignPicker";
 import { WaitScreen } from "./WaitScreen";
+import { Onboarding, PlayerLobby, ErrorScreen } from "./components";
 
 
 export class App extends React.Component {
@@ -10,7 +11,8 @@ export class App extends React.Component {
     return (
       <div className="RootContainer">
         { !this.props.player && this.props.user && <Onboarding dispatch={this.props.dispatch}/> }
-        { this.props.player && <PlayerLobby/> }
+        { this.props.player && !this.props.campaign && <CampaignPicker/> }
+        { this.props.player && this.props.campaign && <PlayerLobby/> }
         { this.props.apiblocked && <WaitScreen/> }
         { this.props.error && <ErrorScreen error={this.props.error}/> }
       </div>
