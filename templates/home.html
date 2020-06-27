@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block load-first %}
   {{ block.super }}
@@ -7,12 +8,15 @@
       height: 100%;
       margin: 0;
     }
+    img {
+      border: solid 1px #555;
+    }
     div.body {
       display: flex;
       flex-flow: column;
       height: 100%;
     }
-    header {
+    .menubar {
       flex: 0 1 36px;
       position: relative;
       background-color: green;
@@ -62,15 +66,17 @@
 {% block content %}
   <div class="body">
     <header>
-      <div class="leftHeader">
-        d20hex
-      </div>
+      <div><img src="{% static 'img/logo.png' %}" height="120" alt="d20hex" /></div>
       {% if user.is_authenticated %}
         <div class="rightHeader">
-          {% if user.first_name %}
-            Hi, {{ user.first_name }}.
+          {% if user.players.all.exists %}
+            {{ user.players.get.name }}
+          {% elif user.first_name %}
+            {{ user.first_name }}
           {% elif user.email %}
-            Hi, {{ user.email }}.
+            {{ user.email }}
+          {% else %}
+            {{ user.username }}
           {% endif %}
           <a href="{% url 'logout' %}"><button>Log out</button></a>
         </div>
