@@ -2,12 +2,14 @@ import * as React from "react"
 import { connect } from 'react-redux';
 import { actions } from "./constants"
 import { Modal } from "./Modal"
+import config from "./config"
 import "./CampaignPicker.css"
 
 class CampaignPickerComponent extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      maxCampaignsPerPlayer: config("maxCampaignsPerPlayer"),
       campaignModalVisible: false,
       campaignNameInput: ""
     }
@@ -28,13 +30,16 @@ class CampaignPickerComponent extends React.Component {
       </div>
     )
   }
+  atLeastNCampaigns(min) {
+    return !!this.props.campaigns && this.props.campaigns.length >= min;
+  }
   render() {
     return (
       <div className="CampaignPicker">
         <h2>My Campaigns</h2>
         <div className="campaignListBox">
-          { (!this.props.campaigns || !this.props.campaigns.length) && <p>None yet.</p> }
-          { !!this.props.campaigns && !!this.props.campaigns.length && this.renderCampaignList() }
+          { !this.atLeastNCampaigns(1) && <p>None yet.</p> }
+          { this.atLeastNCampaigns(1) && this.renderCampaignList() }
         </div>
         <h2 className="push-top">Join a Campaign</h2>
         <p>
@@ -43,8 +48,14 @@ class CampaignPickerComponent extends React.Component {
         </p>
         <h2 className="push-top">Start a Campaign</h2>
         <p>
-          <a href="#" onClick={() => this.openOrCloseNewCampaignModal(true)}>Click here</a> to
-          start a new campaign.  Limit of 3 per player.
+          { this.atLeastNCampaigns(this.state.maxCampaignsPerPlayer) &&
+            <span className="nix">Click here to start a new campaign.</span>}
+          { !this.atLeastNCampaigns(this.state.maxCampaignsPerPlayer) &&
+            <span>
+              <a href="#" onClick={() => this.openOrCloseNewCampaignModal(true)}>Click here</a> to
+              start a new campaign. 
+            </span> }
+          <span> Limit of {this.state.maxCampaignsPerPlayer} campaigns per player.</span>
         </p>
         { this.state.campaignModalVisible && this.renderCampaignModal() }
       </div>

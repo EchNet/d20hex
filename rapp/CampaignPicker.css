@@ -29,10 +29,6 @@
   font-size: 20px;
 }
 
-.CampaignPicker .push-top {
-  margin-top: 40px;
-}
-
 .CampaignPicker .campaignView .campaignGoView {
   float: right;
   font-size: 24px;
@@ -43,4 +39,12 @@
 
 .CampaignPicker .campaignView:hover .campaignGoView {
   visibility: visible;
+}
+
+.CampaignPicker .push-top {
+  margin-top: 40px;
+}
+
+.CampaignPicker .nix {
+  text-decoration: line-through;
 }
