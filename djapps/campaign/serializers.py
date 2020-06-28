@@ -11,6 +11,12 @@ class CampaignSerializer(serializers.ModelSerializer):
 
   creator = PlayerSerializer(read_only=True, many=False)
 
+
+class NewCampaignSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = Campaign
+    fields = ("id", "name", "creator")
+
   def create(self, validated_data):
     new_campaign = super().create(validated_data)
     if new_campaign:

@@ -119,7 +119,9 @@ function playerCreated(state, player) {
 }
 
 function campaignCreated(state, campaign) {
-  state = updateState(state, { campaign, campaigns: (state.campaigns || []).concat(campaign) })
+  // Expand the creator.
+  campaign = Object.assign(campaign, { creator: state.player})
+  state = updateState(state, { campaigns: (state.campaigns || []).concat(campaign) })
   return unshowApiBlock(state)
 }
 
