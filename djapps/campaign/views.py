@@ -6,18 +6,18 @@ from player.models import Player
 
 from .models import Campaign
 from .permissions import (IsSuperuser, IsPlayerOwner)
-from .serializers import CampaignSerializer
+from .serializers import CampaignSerializer, NewCampaignSerializer
 
 
 def check_campaigns_created_limit(creator):
-  MAX_CAMPAIGNS_PER_PLAYER = 20
+  MAX_CAMPAIGNS_PER_PLAYER = 3
   campaigns_created = Campaign.objects.filter(creator=creator).count()
   if campaigns_created >= MAX_CAMPAIGNS_PER_PLAYER:
     raise PermissionDenied(detail="Maximum number of campaigns per player has been reached.")
 
 
 class CreateCampaignView(generics.CreateAPIView):
-  serializer_class = CampaignSerializer
+  serializer_class = NewCampaignSerializer
   permission_classes = (
       permissions.IsAuthenticated,
       IsPlayerOwner,
