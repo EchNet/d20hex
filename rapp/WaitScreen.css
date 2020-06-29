@@ -1,4 +1,5 @@
 .WaitScreen {
+  z-index: 900;
   position: fixed;
   top: 0;
   left: 0;
@@ -20,7 +21,7 @@
 }
 
 .WaitScreen .spinner > div {
-  z-index: 999;
+  z-index: 901;
   height: 100%;
   width: 36px;
   display: inline-block;
