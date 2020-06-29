@@ -5,7 +5,7 @@ from rest_framework import generics, permissions, serializers
 class UserSerializer(serializers.ModelSerializer):
   class Meta:
     model = get_user_model()
-    fields = ("id", "first_name", "last_name")
+    fields = ("id", "first_name", "last_name", "email", "username")
 
 
 class WhoAmIView(generics.RetrieveUpdateDestroyAPIView):

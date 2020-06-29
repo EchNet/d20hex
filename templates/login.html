@@ -6,13 +6,10 @@
 {% block load-first %}
   {{ block.super }}
   <style>
-    html, body {
-      height: 100%;
+    .Login h1 {
+      color: #80b070;
     }
-    h1 {
-      color: #8ba;
-    }
-    .main {
+    .Login {
       height: 100%;
       width: 100%;
       display: table;
@@ -30,21 +27,18 @@
       border: solid 1px #888;
       border-radius: 20px;
       width: 300px;
-      padding: 40px 0;
+      padding: 40px 0 25px;
       text-align: center;
       background-color: #eee;
       display: inline-block;
-    }
-    a[href] {
-      color: #066;
     }
   </style>
 {% endblock load-first %}
 
 {% block content %}
-  <div class="main"><div class="wrapper"><div class="core">
+  <div class="Login"><div class="wrapper"><div class="core">
     <div><img src="{% static 'img/logo.png' %}" height="100" alt="d20hex" /></div>
-    <h1>Login</h1>
+    <h1>login</h1>
     <p>Here are your choices.</p>
     <p><a href="{% url "social:begin" "discord" %}">Login with your Discord account</a></p>
     <p><a href="{% url "social:begin" "facebook" %}">Login with your Facebook account</a></p>
