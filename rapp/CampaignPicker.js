@@ -1,6 +1,7 @@
 import * as React from "react"
 import { connect } from 'react-redux';
 import { actions } from "./constants"
+import FatHeader from "./FatHeader"
 import Modal from "./Modal"
 import config from "./config"
 import "./CampaignPicker.css"
@@ -36,28 +37,31 @@ class CampaignPicker extends React.Component {
   render() {
     return (
       <div className="CampaignPicker">
-        <h2>My Campaigns</h2>
-        <div className="campaignListBox">
-          { !this.atLeastNCampaigns(1) && <p>None yet.</p> }
-          { this.atLeastNCampaigns(1) && this.renderCampaignList() }
+        <FatHeader/>
+        <div className="body">
+          <h2>My Campaigns</h2>
+          <div className="campaignListBox">
+            { !this.atLeastNCampaigns(1) && <p>None yet.</p> }
+            { this.atLeastNCampaigns(1) && this.renderCampaignList() }
+          </div>
+          <h2 className="push-top">Join a Campaign</h2>
+          <p>
+            To join a campaign, ask the campaign creator for a ticket code and enter it here:<br/>
+            <input type="text"/><input type="submit"/>
+          </p>
+          <h2 className="push-top">Start a Campaign</h2>
+          <p>
+            { this.atLeastNCampaigns(this.state.maxCampaignsPerPlayer) &&
+              <span className="nix">Click here to start a new campaign.</span>}
+            { !this.atLeastNCampaigns(this.state.maxCampaignsPerPlayer) &&
+              <span>
+                <a href="#" onClick={() => this.openOrCloseNewCampaignModal(true)}>Click here</a> to
+                start a new campaign. 
+              </span> }
+            <span> Limit of {this.state.maxCampaignsPerPlayer} campaigns per player.</span>
+          </p>
+          { this.state.campaignModalVisible && this.renderCampaignModal() }
         </div>
-        <h2 className="push-top">Join a Campaign</h2>
-        <p>
-          To join a campaign, ask the campaign creator for a ticket code and enter it here:<br/>
-          <input type="text"/><input type="submit"/>
-        </p>
-        <h2 className="push-top">Start a Campaign</h2>
-        <p>
-          { this.atLeastNCampaigns(this.state.maxCampaignsPerPlayer) &&
-            <span className="nix">Click here to start a new campaign.</span>}
-          { !this.atLeastNCampaigns(this.state.maxCampaignsPerPlayer) &&
-            <span>
-              <a href="#" onClick={() => this.openOrCloseNewCampaignModal(true)}>Click here</a> to
-              start a new campaign. 
-            </span> }
-          <span> Limit of {this.state.maxCampaignsPerPlayer} campaigns per player.</span>
-        </p>
-        { this.state.campaignModalVisible && this.renderCampaignModal() }
       </div>
     )
   }
@@ -80,7 +84,7 @@ class CampaignPicker extends React.Component {
         <form onSubmit={() => this.handleNewCampaignFormSubmit()}>
           <div className="titlebar">Start a Campaign</div>
           <div className="body">
-            <input type="text" value={this.state.campaignNameValue}
+            <input type="text" maxlength="40" value={this.state.campaignNameValue}
                 onChange={(event) => this.handleCampaignNameValueChange(event)}
                 placeholder="Enter name of campaign"/>
           </div>

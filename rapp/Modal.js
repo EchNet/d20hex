@@ -2,6 +2,9 @@ import * as React from "react"
 import "./Modal.css"
 
 export class Modal extends React.Component {
+  static defaultProps = {
+    modal: true
+  }
   constructor(props) {
     super(props)
     this.onKeyDown = (event) => {
@@ -17,8 +20,15 @@ export class Modal extends React.Component {
     document.removeEventListener("keydown", this.onKeyDown)
   }
   render() {
-    return (
+    return this.props.modal ? (
       <div className="ModalScreen" onClick={() => this.onClose()}>
+        {this.renderWindow()}
+      </div>
+    ) : this.renderWindow()
+  }
+  renderWindow() {
+    return (
+      <div className="ModalContainer">
         <div className="ModalWindow" onClick={(event) => event.stopPropagation()}>
           {this.props.children}
         </div>

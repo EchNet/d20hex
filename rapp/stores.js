@@ -90,7 +90,11 @@ function closeCampaign(state) {
 // API RESPONSE HANDLERS
 
 function userKnown(state, user) {
-  return listPlayersForUser(updateState(state, { user: user }))
+  let userName = state.userName;
+  if (!userName) {
+    userName = user.first_name || user.email || user.username;
+  }
+  return listPlayersForUser(updateState(state, { user, userName }))
 }
 
 function playersKnown(state, players) {
@@ -99,6 +103,7 @@ function playersKnown(state, players) {
   state = updateState(state, { player, players, campaigns: null })
   state = unshowApiBlock(state)
   if (player) {
+    state = updateState(state, { userName: player.name })
     state = listCampaignsForPlayer(state)
   }
   return state;
@@ -115,7 +120,7 @@ function charactersKnown(state, characters) {
 }
 
 function playerCreated(state, player) {
-  state = updateState(state, { players: [ player ], player })
+  state = updateState(state, { players: [ player ], player, userName: player.name })
   return unshowApiBlock(state)
 }
 

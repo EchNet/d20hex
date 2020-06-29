@@ -5,21 +5,31 @@
   right: 0;
   bottom: 0;
   background-color: rgba(198, 198, 198, 0.5);
-  z-index: 100;
+  z-index: 500;
+}
+
+.ModalContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 .ModalWindow {
   position: absolute;
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 20px;
-  top: 150px;
+  border: solid 1px #999;
   left: 50%;
   margin-left: -200px;
   width: 400px;
+  top: 50%;
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
   text-align: center;
-  z-index: 200;
-  border: solid 1px #888;
-  box-shadow: 4px 4px rgba(198, 198, 198, 0.4);
+  z-index: 550;
+  box-shadow: 4px 4px rgba(198, 198, 198, 0.33);
   overflow: hidden;
 }
 
@@ -27,7 +37,8 @@
   padding: 10px 30px;
   font-size: 18px;
   font-weight: 480;
-  border-bottom: solid 1px #ccc;
+  border-bottom: solid 1px #999;
+  background-color: #98dbff;
 }
 
 .ModalWindow .body {

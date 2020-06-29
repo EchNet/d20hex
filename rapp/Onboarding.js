@@ -2,7 +2,10 @@ import * as React from "react"
 import { connect } from 'react-redux';
 
 import { actions } from "./constants"
+import FatHeader from "./FatHeader"
 import Modal from "./Modal"
+import "./Onboarding.css"
+
 
 export class Onboarding extends React.Component {
   constructor(props) {
@@ -14,7 +17,8 @@ export class Onboarding extends React.Component {
   render() {
     return (
       <div className="Onboarding">
-        <Modal>
+        <FatHeader/>
+        <Modal modal={false}>
           <form onSubmit={(event) => this.handlePlayerFormSubmit(event)}>
             <div className="titlebar">
               Welcome to <span className="Logo">d20hex</span>!
@@ -52,4 +56,8 @@ export class Onboarding extends React.Component {
   }
 }
 
-export default Onboarding
+const mapState = (state) => {
+  return Object.assign({}, state);
+}
+
+export default connect(mapState)(Onboarding)

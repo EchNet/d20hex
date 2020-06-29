@@ -1,0 +1,29 @@
+html, body, div, section, header, footer {
+  padding 0;
+  margin: 0;
+}
+html, body {
+  height: 100%;
+}
+button, input[type="submit"] {
+  padding: 1px 5px;
+  border-radius: 6px;
+  border: outset 2px #98dbff;
+  background-color: white;
+  margin-left: 3px;
+  cursor: pointer;
+}
+button:hover, input[type="submit"]:hover {
+  border-style: inset;
+}
+hr {
+  padding: 0;
+  margin: 0;
+}
+a[href] {
+  color: #b252b2;
+  cursor: pointer;
+}
+a[href]:hover {
+  text-decoration: underline;
+}

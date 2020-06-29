@@ -1,54 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
 
 {% block load-first %}
   {{ block.super }}
-  <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-    }
-    img.logo {
-      border: solid 2px #777;
-    }
-    div.body {
-      margin: 10px 10px 0;
-      display: flex;
-      flex-flow: column;
-      height: 100%;
-    }
-    .menubar {
-      flex: 0 1 36px;
-      position: relative;
-      background-color: green;
-      border: solid 1px green;
-      color: white;
-      width: 100%;
-    }
-    .rightHeader {
-      text-align: right;
-      font-size: 16px;
-    }
-    section#root {
-      flex: 1 1 auto;
-    }
-    footer {
-      flex: 0 1 30px;
-      font-size: 10px;
-      text-align: center;
-    }
-    button {
-      padding: 0 2px;
-      border-radius: 6px;
-      border: groove 3px gray;
-      background-color: white;
-      margin-left: 3px;
-    }
-    hr {
-      padding: 0;
-      margin: 0;
-    }
-  </style>
   {% for stylesheet in stylesheets %}
     <link rel="stylesheet" href="{{ stylesheet }}"/>
   {% endfor %}
@@ -58,38 +11,9 @@
   {% for conf in configuration %}
     <config key="{{ conf.key }}" value="{{ conf.value }}"/>
   {% endfor %}
-  <div class="body">
-    <header>
-      <div><img class="logo" src="{% static 'img/logo.png' %}" height="120" alt="d20hex" /></div>
-      {% if user.is_authenticated %}
-        <div class="rightHeader">
-          {% if user.players.all.exists %}
-            {{ user.players.get.name }}
-          {% elif user.first_name %}
-            {{ user.first_name }}
-          {% elif user.email %}
-            {{ user.email }}
-          {% else %}
-            {{ user.username }}
-          {% endif %}
-          <a href="{% url 'logout' %}"><button>Log out</button></a>
-        </div>
-      {% endif %}
-    </header>
-    <section id="root">
-      {% for script in scripts %}
-        <script src="{{ script }}"></script>
-      {% endfor %}
-    </section>
-    <footer>
-      <hr/>
-      Terms of Service &amp; Privacy Policy
-       ·
-      DMCA
-       ·
-      Support
-       ·
-      Contact Us
-    </footer>
+  <div id="root">
+    {% for script in scripts %}
+      <script src="{{ script }}"></script>
+    {% endfor %}
   </div>
 {% endblock content %}
