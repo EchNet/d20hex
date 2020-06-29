@@ -159,9 +159,3 @@ class CampaignViewComponent extends React.Component {
   }
 }
 export const CampaignView = connect(mapState)(CampaignViewComponent)
-
-export class ErrorScreen extends React.Component {
-  render() {
-    return <div className="ErrorPopup">{this.props.error}</div>
-  }
-}
