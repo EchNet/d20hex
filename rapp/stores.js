@@ -169,6 +169,13 @@ function handleApiCall(promise, successActionType) {
       store.dispatch({ type: successActionType, data: response.data })
     })
     .catch((error) => {
-      store.dispatch({ type: actions.FATAL_ERROR, error: error.toString() })
+      if (DEBUG) console.log(error);
+      let errorString = error.toString()
+      if (error.response && error.response.data) {
+        if (error.response.data.detail) {
+          errorString = error.response.data.detail;
+        }
+      }
+      store.dispatch({ type: actions.FATAL_ERROR, error: errorString })
     })
 }

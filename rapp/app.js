@@ -1,9 +1,10 @@
 import * as React from "react"
 import { connect } from 'react-redux';
 
-import { CampaignPicker } from "./CampaignPicker";
-import { WaitScreen } from "./WaitScreen";
-import { Onboarding, PlayerLobby, ErrorScreen } from "./components";
+import CampaignPicker from "./CampaignPicker";
+import WaitScreen from "./WaitScreen";
+import ErrorScreen from "./ErrorScreen";
+import { Onboarding, PlayerLobby } from "./components";
 
 
 export class App extends React.Component {

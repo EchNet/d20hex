@@ -1,11 +1,11 @@
 import * as React from "react"
 import { connect } from 'react-redux';
 import { actions } from "./constants"
-import { Modal } from "./Modal"
+import Modal from "./Modal"
 import config from "./config"
 import "./CampaignPicker.css"
 
-class CampaignPickerComponent extends React.Component {
+class CampaignPicker extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -110,5 +110,4 @@ const mapState = (state) => {
   return Object.assign({}, state);
 }
 
-export const CampaignPicker = connect(mapState)(CampaignPickerComponent)
-export default CampaignPicker
+export default connect(mapState)(CampaignPicker)
