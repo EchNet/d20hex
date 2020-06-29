@@ -55,6 +55,9 @@
 {% endblock %}
 
 {% block content %}
+  {% for conf in configuration %}
+    <config key="{{ conf.key }}" value="{{ conf.value }}"/>
+  {% endfor %}
   <div class="body">
     <header>
       <div><img class="logo" src="{% static 'img/logo.png' %}" height="120" alt="d20hex" /></div>

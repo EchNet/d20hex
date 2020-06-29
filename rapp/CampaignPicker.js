@@ -9,7 +9,7 @@ class CampaignPicker extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      maxCampaignsPerPlayer: config("maxCampaignsPerPlayer"),
+      maxCampaignsPerPlayer: config("maxCampaignsPerPlayer", 3),
       campaignModalVisible: false,
       campaignNameInput: ""
     }

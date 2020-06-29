@@ -1,8 +1,9 @@
 import { createStore } from "redux"
 import { apiConnector } from "./connectors"
 import { actions } from "./constants"
+import config from "./config"
 
-let DEBUG = true;
+let DEBUG = config("DEBUG");
 
 function stateReducer(state = 0, action) {
   if (DEBUG) console.log("ACTION", state, action)
