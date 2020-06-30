@@ -17,7 +17,7 @@
 }
 
 .CampaignPicker .campaignView:hover {
-  border: solid 2px #a85420;
+  border: solid 2px #c98232;
 }
 
 .CampaignPicker .campaignView .campaignIconView {
@@ -38,7 +38,7 @@
   float: right;
   font-size: 24px;
   font-weight: 520;
-  color: #a85420;
+  color: #c98232;
   visibility: hidden;
 }
 
@@ -52,6 +52,14 @@
 
 .CampaignPicker .nix {
   text-decoration: line-through;
+}
+
+.CampaignPicker .tag {
+  color: #c98232;
+  border: solid 1px #c98232;
+  margin-left: 10px;
+  padding: 2px 6px;
+  border-radius: 5px;
 }
 
 .CampaignPicker .ModalWindow input[type="text"] {

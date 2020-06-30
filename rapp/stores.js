@@ -18,19 +18,21 @@ function stateReducer(state = 0, action) {
     return createCampaign(state, action.props)
   case actions.CREATE_CHARACTER:
     return createCharacter(state, action.props)
+  case actions.SELECT_PLAYER:
+    return selectPlayer(state, action.player)
   case actions.SELECT_CAMPAIGN:
     return selectCampaign(state, action.campaign)
   case actions.CLOSE_CAMPAIGN:
-    return closeCampaign(state)
+    return deselectCampaign(state)
   // API response actions:
   case actions.USER_KNOWN:
     return userKnown(state, action.data)
   case actions.PLAYERS_KNOWN:
     return playersKnown(state, action.data)
-  case actions.CAMPAIGNS_KNOWN:
-    return campaignsKnown(state, action.data)
-  case actions.CHARACTERS_KNOWN:
-    return charactersKnown(state, action.data)
+  case actions.PLAYER_CAMPAIGNS_KNOWN:
+    return playerCampaignsKnown(state, action.data)
+  case actions.PLAYER_CHARACTERS_KNOWN:
+    return playerCharactersKnown(state, action.data)
   case actions.PLAYER_CREATED:
     return playerCreated(state, action.data)
   case actions.CAMPAIGN_CREATED:
@@ -49,16 +51,58 @@ store.subscribe(() => DEBUG && console.log("NEW STATE", store.getState()))
 store.dispatch({ type: actions.START_APP })
 
 //=============================================
-// USER ACTION HANDLERS
+// STATE TRANSITIONS
 
 function startApp(state) {
-  handleApiCall(apiConnector.whoAmI(), actions.USER_KNOWN)
-  return showApiBlock(state)
+  return whoAmI(state);
 }
+
+function selectPlayer(state, player) {
+  const currentId = state.player ? state.player.id : null;
+  const newId = player ? player.id : null;
+  const playerChanging = currentId !== newId;
+  state = updateState(state, { player, userName: player.name })
+  if (playerChanging) {
+    state = deselectCampaign(state);
+    state = updateState(state, { campaigns: null })
+    if (player) {
+      state = listCampaignsForPlayer(state)
+    }
+  }
+  return state
+}
+
+function selectCampaign(state, campaign) {
+  const currentId = state.campaign ? state.campaign.id : null;
+  const newId = campaign ? campaign.id : null;
+  const campaignChanging = currentId !== newId;
+  state = updateState(state, { campaign })
+  if (campaignChanging) {
+    state = updateState(state, { characters: null })
+    if (campaign) {
+      state = listCharactersForPlayerAndCampaign(state)
+    }
+  }
+  return state
+}
+
+function deselectCampaign(state, campaign) {
+  return selectCampaign(state, null)
+}
+
+//=============================================
+// ENTITY CREATION
 
 function createPlayer(state, props) {
   handleApiCall(apiConnector.createPlayerForUser(state.user, props.name), actions.PLAYER_CREATED)
   return showApiBlock(state)
+}
+
+function playerCreated(state, player) {
+  const players = (state.players || []).concat([ player ])
+  state = updateState(state, { players })
+  state = selectPlayer(state, player)
+  return unshowApiBlock(state)
 }
 
 function createCampaign(state, props) {
@@ -67,68 +111,17 @@ function createCampaign(state, props) {
   return showApiBlock(state)
 }
 
+function campaignCreated(state, campaign) {
+  // Synthesize the annotated campaign list.
+  campaign = Object.assign(campaign, { creator: state.player, can_manage: true })
+  state = updateState(state, { campaigns: (state.campaigns || []).concat(campaign) })
+  return unshowApiBlock(state)
+}
+
 function createCharacter(state, props) {
   handleApiCall(apiConnector.createPlayerCharacter(state.player, state.campaign, props.name),
                 actions.CHARACTER_CREATED)
   return showApiBlock(state)
-}
-
-function selectCampaign(state, campaign) {
-  if (!state.campaign || state.campaign.id != campaign.id) {
-    handleApiCall(apiConnector.listCharactersForPlayerAndCampaign(state.player, campaign),
-                  actions.CHARACTERS_KNOWN)
-    state = updateState(state, { campaign, characters: null })
-  }
-  return state
-}
-
-function closeCampaign(state) {
-  return updateState(state, { campaign: null, characters: null })
-}
-
-//=============================================
-// API RESPONSE HANDLERS
-
-function userKnown(state, user) {
-  let userName = state.userName;
-  if (!userName) {
-    userName = user.first_name || user.email || user.username;
-  }
-  return listPlayersForUser(updateState(state, { user, userName }))
-}
-
-function playersKnown(state, players) {
-  players = players || [];
-  const player = players.length ? players[0] : null;
-  state = updateState(state, { player, players, campaigns: null })
-  state = unshowApiBlock(state)
-  if (player) {
-    state = updateState(state, { userName: player.name })
-    state = listCampaignsForPlayer(state)
-  }
-  return state;
-}
-
-function campaignsKnown(state, campaigns) {
-  state = updateState(state, { campaigns: campaigns || [] })
-  return unshowApiBlock(state)
-}
-
-function charactersKnown(state, characters) {
-  state = updateState(state, { characters: characters || [] })
-  return unshowApiBlock(state)
-}
-
-function playerCreated(state, player) {
-  state = updateState(state, { players: [ player ], player, userName: player.name })
-  return unshowApiBlock(state)
-}
-
-function campaignCreated(state, campaign) {
-  // Expand the creator.
-  campaign = Object.assign(campaign, { creator: state.player})
-  state = updateState(state, { campaigns: (state.campaigns || []).concat(campaign) })
-  return unshowApiBlock(state)
 }
 
 function characterCreated(state, character) {
@@ -142,16 +135,58 @@ function fatalError(state, error) {
 }
 
 //=============================================
-// CHAINED API CALLS
+// STATE-BASED API WRAPPERS
+
+function whoAmI(state) {
+  handleApiCall(apiConnector.whoAmI(), actions.USER_KNOWN)
+  return showApiBlock(state)
+}
+
+function userKnown(state, user) {
+  let userName = state.userName;
+  if (!userName) {
+    userName = user.first_name || user.email || user.username;
+  }
+  return listPlayersForUser(updateState(state, { user, userName }))
+}
 
 function listPlayersForUser(state) {
   handleApiCall(apiConnector.listPlayersForUser(state.user), actions.PLAYERS_KNOWN)
   return showApiBlock(state)
 }
 
+function playersKnown(state, players) {
+  players = players || []
+  state = updateState(state, { players })
+  if (players.length) {
+    // Auto-select the first player.
+    state = selectPlayer(state, players[0])
+  }
+  return unshowApiBlock(state)
+}
+
 function listCampaignsForPlayer(state) {
-  handleApiCall(apiConnector.listCampaignsForPlayer(state.player), actions.CAMPAIGNS_KNOWN)
+  handleApiCall(apiConnector.listCampaignsForPlayer(state.player), actions.PLAYER_CAMPAIGNS_KNOWN)
   return showApiBlock(state)
+}
+
+function playerCampaignsKnown(state, playerCampaigns) {
+  playerCampaigns = playerCampaigns || []
+  const campaigns = playerCampaigns.map((pc) => 
+    Object.assign({}, pc.campaign, { can_manage: pc.can_manage }))
+  state = updateState(state, { campaigns })
+  return unshowApiBlock(state)
+}
+
+function listCharactersForPlayerAndCampaign(state) {
+  handleApiCall(apiConnector.listCharactersForPlayerAndCampaign(state.player, state.campaign),
+                actions.PLAYER_CHARACTERS_KNOWN)
+  return showApiBlock(state)
+}
+
+function playerCharactersKnown(state, characters) {
+  state = updateState(state, { characters: characters || [] })
+  return unshowApiBlock(state)
 }
 
 //=============================================

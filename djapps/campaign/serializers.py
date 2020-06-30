@@ -26,3 +26,11 @@ class NewCampaignSerializer(serializers.ModelSerializer):
           can_manage=True,
       )
     return new_campaign
+
+
+class PlayerCampaignMembershipSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = PlayerCampaignMembership
+    fields = ("player_id", "campaign", "can_manage")
+
+  campaign = CampaignSerializer(read_only=True, many=False)
