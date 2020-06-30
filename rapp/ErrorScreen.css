@@ -1,3 +1,7 @@
+.ErrorScreen .ModalWindow {
+  border-color: #c00;
+}
+
 .ErrorScreen .ModalWindow .titlebar {
   background-color: #c00;
   color: white;
@@ -5,5 +9,5 @@
 }
 
 .ErrorScreen .ModalWindow .footer button {
-  padding: 0 5px;
+  border-color: #c00;
 }

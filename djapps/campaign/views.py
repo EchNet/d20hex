@@ -4,9 +4,13 @@ from rest_framework import generics, permissions, views
 
 from player.models import Player
 
-from .models import Campaign
+from .models import Campaign, PlayerCampaignMembership
 from .permissions import (IsSuperuser, IsPlayerOwner)
-from .serializers import CampaignSerializer, NewCampaignSerializer
+from .serializers import (
+    CampaignSerializer,
+    NewCampaignSerializer,
+    PlayerCampaignMembershipSerializer,
+)
 
 
 def check_campaigns_created_limit(creator):
@@ -43,11 +47,14 @@ class CampaignView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class PlayerCampaignsView(generics.ListAPIView):
-  serializer_class = CampaignSerializer
+  serializer_class = PlayerCampaignMembershipSerializer
   permission_classes = (IsSuperuser | IsPlayerOwner, )
 
   def get_queryset(self):
     player_id = self.kwargs.get("player_id")
     player = get_object_or_404(Player.objects.all(), id=player_id)
     self.check_object_permissions(self.request, player)
-    return Campaign.objects.select_related("creator").filter(player_memberships__player=player)
+    return PlayerCampaignMembership.objects \
+        .select_related("campaign") \
+        .select_related("campaign__creator") \
+        .filter(player=player)

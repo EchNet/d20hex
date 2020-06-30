@@ -15,17 +15,19 @@ export class CampaignView extends React.Component {
     return (
       <div className="CampaignView">
         <div><a href="#" onClick={() => this.backToLobby()}>Back to lobby</a></div>
+        <h1>{ this.props.campaign.name }</h1>
         <h2>My Characters</h2>
         { (!this.props.characters || !this.props.characters.length) && <div>No characters yet.</div> }
-        { !!this.props.characters && !!this.props.characters.length && renderCharacterList() }
-        <div>
-          <form onSubmit={(event) => this.handleCharacterFormSubmit(event)}>
-            <input onChange={(event) => this.handleCharacterNameChange()} value={this.state.characterNameInput} placeholder="New character name"/>
-            <button type="submit" disabled={this.state.characterNameInput.length ? "" : "disabled"}>
-              Submit
-            </button>
-          </form>
-        </div>
+        { !!this.props.characters && !!this.props.characters.length && this.renderCharacterList() }
+        { this.renderNewCharacterForm() }
+        { this.props.campaign && this.renderTicketGenerator() }
+      </div>
+    )
+  }
+  renderTicketGenerator() {
+    return (
+      <div>
+        <button onClick={() => this.generateTicket()}>Generate a ticket</button>
       </div>
     )
   }
@@ -34,6 +36,18 @@ export class CampaignView extends React.Component {
       <div>
         <div>Your characters</div>
         { this.props.characters.map((ele) => <div key={ele.id}>{ele.name}</div>) }
+      </div>
+    )
+  }
+  renderNewCharacterForm() {
+    return (
+      <div>
+        <form onSubmit={(event) => this.handleCharacterFormSubmit(event)}>
+          <input onChange={(event) => this.handleCharacterNameChange()} value={this.state.characterNameInput} placeholder="New character name"/>
+          <button type="submit" disabled={this.state.characterNameInput.length ? "" : "disabled"}>
+            Submit
+          </button>
+        </form>
       </div>
     )
   }

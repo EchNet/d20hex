@@ -27,6 +27,8 @@ class CampaignPicker extends React.Component {
         <div className="campaignNameView">{campaign.name}</div>
         <div className="campaignCreatorView">
           Created by <span className="value">{campaign.creator.name}</span>
+          <span> </span>
+          { campaign.can_manage && <span className="tag">manager</span> }
         </div>
       </div>
     )
@@ -69,7 +71,6 @@ class CampaignPicker extends React.Component {
     const props = this.props;
     const id = event.currentTarget.getAttribute("data-id");
     props.campaigns.forEach((campaign) => {
-      console.log(campaign)
       if (campaign.id == id) {
         props.dispatch({ type: actions.SELECT_CAMPAIGN, campaign })
       }

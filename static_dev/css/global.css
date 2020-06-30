@@ -8,7 +8,7 @@ html, body {
 button, input[type="submit"] {
   padding: 1px 5px;
   border-radius: 6px;
-  border: outset 2px #98dbff;
+  border: outset 3px #98dbff;
   background-color: white;
   margin-left: 3px;
   cursor: pointer;
