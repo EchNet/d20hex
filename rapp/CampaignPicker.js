@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { actions } from "./constants"
 import FatHeader from "./FatHeader"
 import Modal from "./Modal"
+import SingleTextValueForm from "./SingleTextValueForm"
 import config from "./config"
 import "./CampaignPicker.css"
 
@@ -12,7 +13,7 @@ class CampaignPicker extends React.Component {
     this.state = {
       maxCampaignsPerPlayer: config("maxCampaignsPerPlayer", 3),
       campaignModalVisible: false,
-      campaignNameInput: ""
+      campaignNameValue: ""
     }
   }
   renderCampaignList() {
@@ -47,10 +48,9 @@ class CampaignPicker extends React.Component {
             { this.atLeastNCampaigns(1) && this.renderCampaignList() }
           </div>
           <h2 className="push-top">Join a Campaign</h2>
-          <p>
-            To join a campaign, ask the campaign creator for a ticket code and enter it here:<br/>
-            <input type="text"/><input type="submit"/>
-          </p>
+          <div>To join a campaign, ask the campaign creator for a ticket code and enter it here:</div>
+          <SingleTextValueForm placeholder="Enter ticket here"
+                onSubmit={(value) => this.handleTicketSubmit(value)}/>
           <h2 className="push-top">Start a Campaign</h2>
           <p>
             { this.atLeastNCampaigns(this.state.maxCampaignsPerPlayer) &&
@@ -108,6 +108,12 @@ class CampaignPicker extends React.Component {
   }
   newCampaignFormIsValid() {
     return this.state.campaignNameValue.length > 0;
+  }
+  handleTicketSubmit(ticket) {
+    this.props.dispatch({
+      type: actions.JOIN_CAMPAIGN,
+      props: { ticket }
+    })
   }
 }
 

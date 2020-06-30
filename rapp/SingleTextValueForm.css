@@ -1,0 +1,15 @@
+.SingleTextValueForm .rowrowrow {
+  display: flex;
+  align-items: flex-end;
+}
+
+.SingleTextValueForm .textInputBox input {
+  width: 100%;
+}
+
+.SingleTextValueForm .textInputBox {
+  flex-grow: 1;
+}
+
+.SingleTextValueForm .submitBox {
+}

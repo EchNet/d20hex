@@ -9,38 +9,38 @@ function stateReducer(state = 0, action) {
   if (DEBUG) console.log("ACTION", state, action)
   if (!action.type) throw "null action type";
   switch (action.type) {
-  // User actions:
   case actions.START_APP:
     return startApp(state)
-  case actions.CREATE_PLAYER:
-    return createPlayer(state, action.props)
-  case actions.CREATE_CAMPAIGN:
-    return createCampaign(state, action.props)
-  case actions.CREATE_CHARACTER:
-    return createCharacter(state, action.props)
+  case actions.USER_KNOWN:
+    return userKnown(state, action.data)
   case actions.SELECT_PLAYER:
     return selectPlayer(state, action.player)
   case actions.SELECT_CAMPAIGN:
     return selectCampaign(state, action.campaign)
   case actions.CLOSE_CAMPAIGN:
     return deselectCampaign(state)
-  // API response actions:
-  case actions.USER_KNOWN:
-    return userKnown(state, action.data)
+  case actions.SHOW_ERROR:
+    return showError(state, action.error, action.isFatal)
+  case actions.CREATE_PLAYER:
+    return createPlayer(state, action.props)
+  case actions.PLAYER_CREATED:
+    return playerCreated(state, action.data)
+  case actions.CREATE_CAMPAIGN:
+    return createCampaign(state, action.props)
+  case actions.CAMPAIGN_CREATED:
+    return campaignCreated(state, action.data)
+  case actions.CREATE_CHARACTER:
+    return createCharacter(state, action.props)
+  case actions.CHARACTER_CREATED:
+    return characterCreated(state, action.data)
   case actions.PLAYERS_KNOWN:
     return playersKnown(state, action.data)
   case actions.PLAYER_CAMPAIGNS_KNOWN:
     return playerCampaignsKnown(state, action.data)
   case actions.PLAYER_CHARACTERS_KNOWN:
     return playerCharactersKnown(state, action.data)
-  case actions.PLAYER_CREATED:
-    return playerCreated(state, action.data)
-  case actions.CAMPAIGN_CREATED:
-    return campaignCreated(state, action.data)
-  case actions.CHARACTER_CREATED:
-    return characterCreated(state, action.data)
-  case actions.FATAL_ERROR:
-    return fatalError(state, action.error)
+  case actions.JOIN_CAMPAIGN:
+    return joinCampaign(state, action.props.ticket)
   }
   if (DEBUG) console.log("warning: action unhandled")
   return state || {};
@@ -129,8 +129,8 @@ function characterCreated(state, character) {
   return unshowApiBlock(state)
 }
 
-function fatalError(state, error) {
-  state = updateState(state, { error: error })
+function showError(state, error, isFatal) {
+  state = updateState(state, { error })
   return unshowApiBlock(state)
 }
 
@@ -163,6 +163,12 @@ function playersKnown(state, players) {
     state = selectPlayer(state, players[0])
   }
   return unshowApiBlock(state)
+}
+
+function joinCampaign(state, ticket) {
+  handleApiCall(apiConnector.joinCampaign(state.player, ticket),
+      actions.PLAYER_CAMPAIGNS_KNOWN, false)
+  return showApiBlock(state)
 }
 
 function listCampaignsForPlayer(state) {
@@ -204,7 +210,8 @@ function unshowApiBlock(state) {
   return updateState(state, { apiblocked: false })
 }
 
-function handleApiCall(promise, successActionType) {
+function handleApiCall(promise, successActionType, isFatal) {
+  if (isFatal === undefined) isFatal = true;
   promise
     .then((response) => {
       store.dispatch({ type: successActionType, data: response.data })
@@ -217,6 +224,6 @@ function handleApiCall(promise, successActionType) {
           errorString = error.response.data.detail;
         }
       }
-      store.dispatch({ type: actions.FATAL_ERROR, error: errorString })
+      store.dispatch({ type: actions.ERROR, error: errorString, isFatal })
     })
 }
