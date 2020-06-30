@@ -12,8 +12,7 @@ class CampaignPicker extends React.Component {
     super(props)
     this.state = {
       maxCampaignsPerPlayer: config("maxCampaignsPerPlayer", 3),
-      campaignModalVisible: false,
-      campaignNameValue: ""
+      campaignModalVisible: false
     }
   }
   renderCampaignList() {
@@ -77,7 +76,7 @@ class CampaignPicker extends React.Component {
     })
   }
   openOrCloseNewCampaignModal(open) {
-    this.setState({ campaignModalVisible: !!open, campaignNameValue: "" })
+    this.setState({ campaignModalVisible: !!open })
   }
   renderCampaignModal() {
     return (
@@ -85,29 +84,19 @@ class CampaignPicker extends React.Component {
         <form onSubmit={() => this.handleNewCampaignFormSubmit()}>
           <div className="titlebar">Start a Campaign</div>
           <div className="body">
-            <input type="text" maxlength="40" value={this.state.campaignNameValue}
-                onChange={(event) => this.handleCampaignNameValueChange(event)}
-                placeholder="Enter name of campaign"/>
-          </div>
-          <div className="footer">
-            <input type="submit" disabled={this.newCampaignFormIsValid() ? "" : "disabled"}/>
+            <SingleTextValueForm placeholder="Enter name of campaign" maxLength={40}
+            onSubmit={(name) => this.handleNewCampaignFormSubmit(name)}/>
           </div>
         </form>
       </Modal>
     )
   }
-  handleCampaignNameValueChange(event) {
-    this.setState({ campaignNameValue: event.target.value })
-  }
-  handleNewCampaignFormSubmit() {
+  handleNewCampaignFormSubmit(name) {
     this.props.dispatch({
       type: actions.CREATE_CAMPAIGN,
-      props: { name: this.state.campaignNameValue }
+      props: { name }
     })
     this.openOrCloseNewCampaignModal(false)
-  }
-  newCampaignFormIsValid() {
-    return this.state.campaignNameValue.length > 0;
   }
   handleTicketSubmit(ticket) {
     this.props.dispatch({
