@@ -67,6 +67,8 @@
   border-radius: 5px;
 }
 
-.CampaignPicker .ModalWindow input[type="text"] {
-  width: 30ch;
+.CampaignPicker .ModalWindow .body {
+  width: 400px;
+  margin-top: 10px;
+  margin-bottom: 15px;
 }
