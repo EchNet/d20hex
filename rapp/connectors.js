@@ -47,6 +47,15 @@ class ApiConnector {
     return this._doPost(`/api/1.0/character`, {
         "player": player.id, "campaign": campaign.id, "name": characterName })
   }
+  generateTicket(player, campaign) {
+    return this._doPost(`/api/1.0/campaign/${campaign.id}/action`, {
+        "action": "ticket",
+        "granter": player.id
+    })
+  }
+  joinCampaign(player, ticket) {
+    return this._doGet(`/api/1.0/player/${player.id}/campaigns?ticket=${ticket}`)
+  }
 }
 
 export const apiConnector = new ApiConnector()

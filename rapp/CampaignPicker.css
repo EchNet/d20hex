@@ -1,3 +1,8 @@
+.CampaignPicker {
+  max-width: 780px;
+  margin: auto;
+}
+
 .CampaignPicker .body {
   margin-left: 20px;
   margin-right: 20px;
