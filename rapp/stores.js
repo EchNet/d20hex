@@ -1,6 +1,6 @@
 import { createStore } from "redux"
 import { apiConnector } from "./connectors"
-import { actions } from "./constants"
+import actions from "./actions"
 import config from "./config"
 
 let DEBUG = config("DEBUG");
@@ -20,7 +20,9 @@ function stateReducer(state = 0, action) {
   case actions.CLOSE_CAMPAIGN:
     return deselectCampaign(state)
   case actions.SHOW_ERROR:
-    return showError(state, action.error, action.isFatal)
+    return showError(state, action.message)
+  case actions.SHOW_ALERT:
+    return showAlert(state, action.message)
   case actions.CREATE_PLAYER:
     return createPlayer(state, action.props)
   case actions.PLAYER_CREATED:
@@ -129,8 +131,13 @@ function characterCreated(state, character) {
   return unshowApiBlock(state)
 }
 
-function showError(state, error, isFatal) {
-  state = updateState(state, { error })
+function showError(state, errorMessage) {
+  state = updateState(state, { errorMessage })
+  return unshowApiBlock(state)
+}
+
+function showAlert(state, alertMessage) {
+  state = updateState(state, { alertMessage })
   return unshowApiBlock(state)
 }
 
@@ -165,14 +172,14 @@ function playersKnown(state, players) {
   return unshowApiBlock(state)
 }
 
-function joinCampaign(state, ticket) {
-  handleApiCall(apiConnector.joinCampaign(state.player, ticket),
-      actions.PLAYER_CAMPAIGNS_KNOWN, false)
+function listCampaignsForPlayer(state) {
+  handleApiCall(apiConnector.listCampaignsForPlayer(state.player), actions.PLAYER_CAMPAIGNS_KNOWN)
   return showApiBlock(state)
 }
 
-function listCampaignsForPlayer(state) {
-  handleApiCall(apiConnector.listCampaignsForPlayer(state.player), actions.PLAYER_CAMPAIGNS_KNOWN)
+function joinCampaign(state, ticket) {
+  handleApiCall(apiConnector.joinCampaign(state.player, ticket),
+      actions.PLAYER_CAMPAIGNS_KNOWN, actions.SHOW_ALERT)
   return showApiBlock(state)
 }
 
@@ -210,20 +217,27 @@ function unshowApiBlock(state) {
   return updateState(state, { apiblocked: false })
 }
 
-function handleApiCall(promise, successActionType, isFatal) {
-  if (isFatal === undefined) isFatal = true;
+function handleApiCall(promise, successActionType, errorActionType=actions.SHOW_ERROR) {
   promise
     .then((response) => {
       store.dispatch({ type: successActionType, data: response.data })
     })
     .catch((error) => {
-      if (DEBUG) console.log(error);
-      let errorString = error.toString()
-      if (error.response && error.response.data) {
-        if (error.response.data.detail) {
-          errorString = error.response.data.detail;
+      let message;
+      if (error.response) {
+        if (DEBUG) console.log(error.response);
+        if (error.response.status == 500) {
+          message = "Unexpected server error."
+        }
+        else if (error.response.data) {
+          if (error.response.data.detail) {
+            message = error.response.data.detail;
+          }
         }
       }
-      store.dispatch({ type: actions.ERROR, error: errorString, isFatal })
+      store.dispatch({
+        type: errorActionType,
+        message: message || error.toString()
+      })
     })
 }

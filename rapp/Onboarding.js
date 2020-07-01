@@ -1,7 +1,7 @@
 import * as React from "react"
 import { connect } from 'react-redux';
 
-import { actions } from "./constants"
+import actions from "./actions"
 import FatHeader from "./FatHeader"
 import Modal from "./Modal"
 import "./Onboarding.css"

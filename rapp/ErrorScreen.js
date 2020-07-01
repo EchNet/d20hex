@@ -6,16 +6,23 @@ import "./ErrorScreen.css"
 export class ErrorScreen extends React.Component {
   render() {
     return (
-      <div className="ErrorScreen">
-        <Modal>
-          <div className="titlebar">Error</div>
-          <div className="body">{this.props.error}</div>
+      <div className={ this.props.fatal ? "ErrorScreen" : "AlertScreen" }>
+        <Modal onClose={ this.props.onClose }>
+          <div className="titlebar">{ this.props.fatal ? "Error" : "Oops" }</div>
+          <div className="body">{this.props.message}</div>
           <div className="footer">
-            <button type="button" onClick={this.reloadPage}>Click to reload app</button>
+            { !!this.props.fatal && this.renderFatalButton() }
+            { !this.props.fatal && this.renderAlertButton() }
           </div>
         </Modal>
       </div>
     )
+  }
+  renderFatalButton() {
+    return <button type="button" onClick={this.reloadPage}>Click to reload app</button>
+  }
+  renderAlertButton() {
+    return <button type="button" onClick={this.props.onClose}>OK</button>
   }
   reloadPage() {
     document.location.reload()

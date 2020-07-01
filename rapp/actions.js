@@ -1,3 +1,7 @@
+//
+// Reducer actions enumeration.  See store.js
+//
+
 export const actions = {
   "START_APP": "START_APP",
   "USER_KNOWN": "USER_KNOWN",
@@ -14,5 +18,8 @@ export const actions = {
   "JOIN_CAMPAIGN": "JOIN_CAMPAIGN",
   "CREATE_CHARACTER": "CREATE_CHARACTER",
   "CHARACTER_CREATED": "CHARACTER_CREATED",
-  "SHOW_ERROR": "SHOW_ERROR"
+  "SHOW_ERROR": "SHOW_ERROR",
+  "SHOW_ALERT": "SHOW_ALERT"
 }
+
+export default actions

@@ -3,9 +3,9 @@ import logging
 
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, permissions, views
+from rest_framework import exceptions, generics, permissions, views
 from rest_framework.response import Response
 
 from player.models import Player
@@ -21,6 +21,8 @@ from .serializers import (
 )
 
 logger = logging.getLogger(__name__)
+
+# The following functions belong in a service class.
 
 
 def check_campaigns_created_limit(creator):
@@ -86,17 +88,16 @@ class PlayerCampaignsView(generics.ListAPIView):
         .filter(player=player)
 
   def get(self, request, *args, **kwargs):
-    logger.info("LOOKING FOR A TICKET")
     if request.GET.get("ticket", ""):
-      logger.info("GOT A TICKET")
-      stuff = json.loads(TokenCodec().decode(request.GET.get("ticket")))
-      if len(stuff) != 2:
-        raise ValidationError("invalid ticket.")
-      logger.info(stuff)
-      campaign_id = stuff[0]
-      expiration = int(stuff[1])
+      try:
+        stuff = json.loads(TokenCodec().decode(request.GET.get("ticket")))
+        logger.info(stuff)
+        campaign_id = stuff[0]
+        expiration = int(stuff[1])
+      except:
+        raise exceptions.ParseError("Ticket is invalid.")
       if expiration < datetime.now().timestamp():
-        raise ValidationError("Ticket has expired.")
+        raise exceptions.ParseError("Ticket has expired.")
       player_id = self.kwargs.get("player_id")
       PlayerCampaignMembership.objects.get_or_create(player_id=player_id, campaign_id=campaign_id)
     return super().get(request, *args, **kwargs)
