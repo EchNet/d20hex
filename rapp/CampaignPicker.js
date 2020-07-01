@@ -1,6 +1,6 @@
 import * as React from "react"
-import { connect } from 'react-redux';
-import { actions } from "./constants"
+import { connect } from 'react-redux'
+import actions from "./actions"
 import FatHeader from "./FatHeader"
 import Modal from "./Modal"
 import SingleTextValueForm from "./SingleTextValueForm"

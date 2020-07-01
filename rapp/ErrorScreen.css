@@ -11,3 +11,8 @@
 .ErrorScreen .ModalWindow .footer button {
   border-color: #c00;
 }
+
+.AlertScreen .ModalWindow .titlebar {
+  background-color: #fa1;
+  border-bottom: none;
+}

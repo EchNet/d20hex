@@ -14,6 +14,8 @@ class TokenCodec:
     return f"{encoded_payload_string}-{hash_string}"
 
   def decode(self, token):
+    if not token.find("-"):
+      raise ValueError()
     encoded_payload_string, hash_string = token.split("-")
     payload_string = force_text(urlsafe_base64_decode(encoded_payload_string))
     if not constant_time_compare(self.encode(payload_string), token):

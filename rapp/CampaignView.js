@@ -2,7 +2,8 @@ import * as React from "react"
 import { connect } from 'react-redux';
 
 import { apiConnector } from "./connectors"
-import { actions } from "./constants"
+import actions from "./actions"
+
 
 export class CampaignView extends React.Component {
   constructor(props) {
