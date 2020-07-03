@@ -1,5 +1,7 @@
 import * as React from "react"
 import { connect } from 'react-redux'
+import { Link } from "react-router-dom"
+
 import actions from "./actions"
 import FatHeader from "./FatHeader"
 import Modal from "./Modal"
@@ -9,6 +11,7 @@ import "./CampaignPicker.css"
 
 class CampaignPicker extends React.Component {
   constructor(props) {
+    console.log('CONSTRUCT CampaignPicker')
     super(props)
     this.state = {
       maxCampaignsPerPlayer: config("maxCampaignsPerPlayer", 3),
@@ -20,23 +23,25 @@ class CampaignPicker extends React.Component {
   }
   renderCampaign(campaign) {
     return (
-      <div key={campaign.id} data-id={campaign.id} className="campaignView"
-          onClick={(event) => this.handleCampaignViewClick(event)}>
-        <div className="campaignIconView"></div>
-        <div className="campaignGoView">Go!</div>
-        <div className="campaignNameView">{campaign.name}</div>
-        <div className="campaignCreatorView">
-          Created by <span className="value">{campaign.creator.name}</span>
-          <span> </span>
-          { campaign.can_manage && <span className="tag">manager</span> }
+      <Link key={campaign.id} to={`/player/${this.props.player.id}/campaign/${campaign.id}`}>
+        <div className="campaignView">
+          <div className="campaignIconView"></div>
+          <div className="campaignGoView">Go!</div>
+          <div className="campaignNameView">{campaign.name}</div>
+          <div className="campaignCreatorView">
+            Created by <span className="value">{campaign.creator.name}</span>
+            <span> </span>
+            { campaign.can_manage && <span className="tag">manager</span> }
+          </div>
         </div>
-      </div>
+      </Link>
     )
   }
   atLeastNCampaigns(min) {
     return !!this.props.campaigns && this.props.campaigns.length >= min;
   }
   render() {
+    console.log('RENDER CampaignPicker')
     return (
       <div className="CampaignPicker">
         <FatHeader/>
@@ -56,7 +61,7 @@ class CampaignPicker extends React.Component {
               <span className="nix">Click here to start a new campaign.</span>}
             { !this.atLeastNCampaigns(this.state.maxCampaignsPerPlayer) &&
               <span>
-                <a href="#" onClick={() => this.openOrCloseNewCampaignModal(true)}>Click here</a> to
+                <a href="#" onClick={(event) => this.handleNewCampaignClick(event)}>Click here</a> to
                 start a new campaign. 
               </span> }
             <span> Limit of {this.state.maxCampaignsPerPlayer} campaigns per player.</span>
@@ -66,14 +71,9 @@ class CampaignPicker extends React.Component {
       </div>
     )
   }
-  handleCampaignViewClick(event) {
-    const props = this.props;
-    const id = event.currentTarget.getAttribute("data-id");
-    props.campaigns.forEach((campaign) => {
-      if (campaign.id == id) {
-        props.dispatch({ type: actions.SELECT_CAMPAIGN, campaign })
-      }
-    })
+  handleNewCampaignClick(event) {
+    event.preventDefault()
+    this.openOrCloseNewCampaignModal(true)
   }
   openOrCloseNewCampaignModal(open) {
     this.setState({ campaignModalVisible: !!open })
@@ -81,13 +81,11 @@ class CampaignPicker extends React.Component {
   renderCampaignModal() {
     return (
       <Modal onClose={() => this.openOrCloseNewCampaignModal(false)}>
-        <form onSubmit={() => this.handleNewCampaignFormSubmit()}>
-          <div className="titlebar">Start a Campaign</div>
-          <div className="body">
-            <SingleTextValueForm placeholder="Enter name of campaign" maxLength={40}
-            onSubmit={(name) => this.handleNewCampaignFormSubmit(name)}/>
-          </div>
-        </form>
+        <div className="titlebar">Start a Campaign</div>
+        <div className="body">
+          <SingleTextValueForm placeholder="Enter name of campaign" maxLength={40}
+          onSubmit={(name) => this.handleNewCampaignFormSubmit(name)}/>
+        </div>
       </Modal>
     )
   }
