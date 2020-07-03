@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 
 import { apiConnector } from "./connectors"
 import actions from "./actions"
+import "./CampaignView.css"
 
 
 export class CampaignView extends React.Component {
@@ -14,13 +15,29 @@ export class CampaignView extends React.Component {
       ticketError: ""
     }
   }
+  componentDidMount() {
+    this.props.dispatch({ type: actions.WANT_CHARACTERS })
+  }
   render() {
     return (
       <div className="CampaignView">
-        <div><a href="#" onClick={() => this.backToLobby()}>Back to lobby</a></div>
-        <h1>{ this.props.campaign.name }</h1>
+        { this.renderTopNav() }
         { this.renderCharactersView() }
         { this.props.campaign.can_manage && this.renderTicketGenerator() }
+      </div>
+    )
+  }
+  renderTopNav() {
+    return (
+      <div className="topNav">
+        <div className="left">
+          <i className="material-icons" onClick={() => this.backToLobby()}>exit_to_app</i>
+        </div>
+        <div className="middle">{ this.props.campaign.name }</div>
+        <div className="right">
+          <span>{ this.props.userName }</span> &nbsp;
+          <i className="material-icons">face</i>
+        </div>
       </div>
     )
   }

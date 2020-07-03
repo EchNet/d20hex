@@ -6,7 +6,7 @@ html, body {
   height: 100%;
 }
 button, input[type="submit"] {
-  padding: 1px 5px;
+  padding: 1px 5px 1px 5px;
   border-radius: 6px;
   border: outset 3px #98dbff;
   background-color: white;

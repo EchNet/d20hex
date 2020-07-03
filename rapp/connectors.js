@@ -1,14 +1,22 @@
 import axios from "axios";
 import ImportedCookies from "cookies-js";
 
+function toQueryString(params) {
+  return Object.keys(params).map(
+    (key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`
+  ).join("&")
+}
+
 class ApiConnector {
   constructor(props) {
     this.props = props || {}
     this.jwt = ImportedCookies.get("jwt")
     this.jwt_tob = Number(ImportedCookies.get("jwt_tob"))
   }
-  _doGet(uri) {
-    return axios.get(uri, {
+  _doGet(uri, data={}) {
+    const salt = Math.random().toString(16).substring(2)
+    const queryString = toQueryString(Object.assign({ _: salt }, data))
+    return axios.get(`${uri}?${queryString}`, {
       withCredentials: true,
       headers: {
         Accept: "application/json",
@@ -41,7 +49,10 @@ class ApiConnector {
     return this._doPost(`/api/1.0/campaign`, { "creator": player.id, "name": campaignName })
   }
   listCharactersForPlayerAndCampaign(player, campaign) {
-    return this._doGet(`/api/1.0/player/${player.id}/characters?campaign=${campaign.id}`)
+    return this._doGet(`/api/1.0/player/${player.id}/characters`, { campaign: campaign.id })
+  }
+  listCharactersForCampaign(campaign) {
+    return this._doGet(`/api/1.0/campaign/${campaign.id}/characters`)
   }
   createPlayerCharacter(player, campaign, characterName) {
     return this._doPost(`/api/1.0/character`, {
@@ -54,7 +65,7 @@ class ApiConnector {
     })
   }
   joinCampaign(player, ticket) {
-    return this._doGet(`/api/1.0/player/${player.id}/campaigns?ticket=${ticket}`)
+    return this._doGet(`/api/1.0/player/${player.id}/campaigns`, { ticket })
   }
 }
 

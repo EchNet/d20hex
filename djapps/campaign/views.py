@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import exceptions, generics, permissions, views
 from rest_framework.response import Response
 
+from character.serializers import CharacterSerializer
 from player.models import Player
 from player.serializers import PlayerSerializer
 from utils.token import TokenCodec
@@ -64,14 +65,14 @@ class CampaignView(generics.RetrieveAPIView):
     return campaign
 
 
-class CampaignPlayersView(generics.ListAPIView):
-  serializer_class = PlayerSerializer
+class CampaignCharactersView(generics.ListAPIView):
+  serializer_class = CharacterSerializer
   permission_classes = (permissions.AllowAny, )
 
   def get_queryset(self):
     campaign_id = self.kwargs.get("campaign_id")
     campaign = get_object_or_404(Campaign.objects.all(), id=campaign_id)
-    return Player.objects.filter(campaign_membership=campaign)
+    return campaign.characters.all()
 
 
 class PlayerCampaignsView(generics.ListAPIView):
