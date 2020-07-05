@@ -11,7 +11,6 @@ import "./CampaignPicker.css"
 
 class CampaignPicker extends React.Component {
   constructor(props) {
-    console.log('CONSTRUCT CampaignPicker')
     super(props)
     this.state = {
       maxCampaignsPerPlayer: config("maxCampaignsPerPlayer", 3),
@@ -41,7 +40,6 @@ class CampaignPicker extends React.Component {
     return !!this.props.campaigns && this.props.campaigns.length >= min;
   }
   render() {
-    console.log('RENDER CampaignPicker')
     return (
       <div className="CampaignPicker">
         <FatHeader/>

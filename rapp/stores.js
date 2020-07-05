@@ -48,6 +48,10 @@ function stateReducer(state = 0, action) {
     return joinCampaign(state, action.props.ticket)
   case actions.WANT_CHARACTERS:
     return wantCharacters(state)
+  case actions.UPDATE_PLAYER:
+    return updatePlayer(state, action.props)
+  case actions.PLAYER_UPDATED:
+    return playerUpdated(state, action.data)
   }
   if (DEBUG) console.log("warning: action unhandled")
   return state || {};
@@ -200,6 +204,21 @@ function wantCharacters(state) {
 
 function charactersKnown(state, characters) {
   state = updateState(state, { characters: characters || [] })
+  return unshowApiBlock(state)
+}
+
+function updatePlayer(state, props) {
+  handleApiCall(apiConnector.updatePlayer(state.player, props.name), actions.PLAYER_UPDATED)
+  return showApiBlock(state)
+}
+
+function playerUpdated(state, player) {
+  state = updateState(state, { player, userName: player.name })
+  state.players.forEach((ele) => {
+    if (ele.id == player.id) {
+      Object.assign(ele, player)
+    }
+  })
   return unshowApiBlock(state)
 }
 

@@ -9,3 +9,50 @@
 .FatHeader img.logo {
   border: solid 2px #999;
 }
+
+.Menu {
+  position: relative;
+  display: inline-block;
+  padding: 0;
+}
+.Menu button {
+  font-size: 20px;
+  display: flex;
+  border-radius: 0;
+  background-color: #666;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+}
+.Menu button:hover {
+  background-color: white;
+  color: #666;
+  border: solid 1px #666;
+}
+.Menu button .icon {
+  margin-left: 5px;
+}
+.Menu button .icon i {
+  font-size: 18px;
+}
+.Menu ul {
+  position: absolute;
+  right: 0px;
+  background-color: white;
+  min-width: 200px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  list-style: none;
+  border-left: solid 1px #444;
+  border-right: solid 1px #444;
+  border-top: solid 1px #444;
+}
+.Menu li {
+  padding: 3px 6px;
+  border-bottom: solid 1px black;
+  cursor: pointer;
+}
+.Menu li:hover {
+  background-color: #666;
+  color: white;
+}

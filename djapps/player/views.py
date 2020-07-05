@@ -2,8 +2,9 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, views
 
-from .serializers import PlayerSerializer
+from .models import Player
 from .permissions import (IsSuperuser, IsTheUser)
+from .serializers import PlayerSerializer
 
 
 class CreatePlayerView(generics.CreateAPIView):
