@@ -21,7 +21,9 @@ export const actions = {
   "CHARACTER_CREATED": "CHARACTER_CREATED",
   "SHOW_ERROR": "SHOW_ERROR",
   "SHOW_ALERT": "SHOW_ALERT",
-  "LOGIN": "LOGIN"
+  "LOGIN": "LOGIN",
+  "UPDATE_PLAYER": "UPDATE_PLAYER",
+  "PLAYER_UPDATED": "PLAYER_UPDATED"
 }
 
 export default actions

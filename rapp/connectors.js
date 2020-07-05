@@ -33,6 +33,15 @@ class ApiConnector {
       }
     })
   }
+  _doPut(uri, data) {
+    return axios.put(uri, data, {
+      withCredentials: true,
+      headers: {
+        Accept: "application/json",
+        "X-CSRFToken": ImportedCookies.get("csrftoken")
+      }
+    })
+  }
   whoAmI() {
     return this._doGet("/api/1.0/who")
   }
@@ -66,6 +75,10 @@ class ApiConnector {
   }
   joinCampaign(player, ticket) {
     return this._doGet(`/api/1.0/player/${player.id}/campaigns`, { ticket })
+  }
+  updatePlayer(player, playerName) {
+    const data = Object.assign({}, player, { name: playerName })
+    return this._doPut(`/api/1.0/player/${player.id}`, data)
   }
 }
 
