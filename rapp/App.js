@@ -44,9 +44,11 @@ class DefaultPathView extends React.Component {
   // What to show if there is no player in the path.
   render() {
     // If there are Players available, select and show the first one.
-    if (this.props.players && this.props.players.length) {
-      const player = this.props.players[0];
-      return <Redirect to={`/player/${player.id}`}/>
+    if (this.props.players) {
+      for (let key in this.props.players) {
+        const player = this.props.players[key];
+        return <Redirect to={`/player/${player.id}`}/>
+      }
     }
     // Otherwise, let the user create one.
     return <Onboarding/>
@@ -80,7 +82,7 @@ class PlayerPathView extends React.Component {
   }
   findPlayer() {
     const matchedPlayerId = this.matchedPlayerId;
-    return this.props.players.find((ele) => ele.id === matchedPlayerId)
+    return this.props.players[this.matchedPlayerId.toString()]
   }
   get matchedPlayerId() {
     return parseInt(this.props.match.params.playerId)
