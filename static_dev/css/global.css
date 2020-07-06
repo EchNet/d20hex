@@ -14,7 +14,7 @@ button, input[type="submit"] {
   margin-left: 3px;
   cursor: pointer;
 }
-button:hover, input[type="submit"]:hover {
+button:hover:not([disabled]), input[type="submit"]:hover:not([disabled]) {
   border-style: inset;
 }
 hr {
