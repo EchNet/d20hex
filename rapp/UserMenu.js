@@ -5,35 +5,28 @@ import { Menu, MenuItem } from "./Menu"
 import Modal from "./Modal"
 import SingleTextValueForm from "./SingleTextValueForm"
 import actions from "./actions"
-import "./FatHeader.css"
 
 
-export class FatHeader extends React.Component {
+export class UserMenu extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      userMenuShown: false,
       playerNameModalShown: false
     }
   }
   render() {
     return (
-      <header className="FatHeader">
-        <div className="leftSide">
-          <img className="logo" src="/static/img/logo.png" height="120" alt="d20hex"/>
-        </div>
-        <div className="rightSide">
-          <Menu right="right" label={this.props.userName}>
-            <MenuItem onClick={() => this.openOrClosePlayerNameModal(true)}>
-              Change player name
-            </MenuItem>
-            <MenuItem onClick={() => window.location = "/logout"}>
-              Log out
-            </MenuItem>
-          </Menu>
-        </div>
+      <div>
+        <Menu right="right" label={this.props.userName}>
+          <MenuItem onClick={() => this.openOrClosePlayerNameModal(true)}>
+            Change player name
+          </MenuItem>
+          <MenuItem onClick={() => window.location = "/logout"}>
+            Log out
+          </MenuItem>
+        </Menu>
         { this.state.playerNameModalShown && this.renderPlayerNameModal() }
-      </header>
+      </div>
     )
   }
   openOrClosePlayerNameModal(playerNameModalShown) {
@@ -63,4 +56,4 @@ const mapState = (state) => {
   return Object.assign({}, state);
 }
 
-export default connect(mapState)(FatHeader)
+export default connect(mapState)(UserMenu)

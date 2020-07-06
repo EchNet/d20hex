@@ -15,12 +15,6 @@
 .Menu button:hover {
   border: dashed 1px white;
 }
-.Menu button .icon {
-  margin-left: 5px;
-}
-.Menu button .icon i {
-  font-size: 18px;
-}
 .Menu ul {
   position: absolute;
   background-color: white;

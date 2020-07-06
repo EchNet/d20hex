@@ -8,11 +8,12 @@ html, body {
 }
 button, input[type="submit"] {
   padding: 1px 5px 1px 5px;
+  background-color: white;
+  cursor: pointer;
+}
+input[type="submit"] {
   border-radius: 6px;
   border: outset 3px #98dbff;
-  background-color: white;
-  margin-left: 3px;
-  cursor: pointer;
 }
 button:hover:not([disabled]), input[type="submit"]:hover:not([disabled]) {
   border-style: inset;

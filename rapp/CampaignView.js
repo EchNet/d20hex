@@ -3,6 +3,11 @@ import { connect } from 'react-redux';
 
 import { apiConnector } from "./connectors"
 import actions from "./actions"
+import AdminView from "./AdminView"
+import CharactersView from "./CharactersView"
+import ActionView from "./ActionView"
+import {Menu, MenuItem} from "./Menu"
+import UserMenu from "./UserMenu"
 import "./CampaignView.css"
 
 
@@ -10,9 +15,9 @@ export class CampaignView extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      characterNameInput: "",
-      ticket: "",
-      ticketError: ""
+      actionViewShown: true,
+      charactersViewShown: false,
+      adminViewShown: false
     }
   }
   componentDidMount() {
@@ -21,102 +26,47 @@ export class CampaignView extends React.Component {
   render() {
     return (
       <div className="CampaignView">
-        { this.renderTopNav() }
-        { this.renderCharactersView() }
-        { this.props.campaign.can_manage && this.renderTicketGenerator() }
+        { this.renderHeader() }
+        { this.state.actionViewShown && <ActionView/> }
+        { this.state.adminViewShown && <AdminView/> }
+        { this.state.charactersViewShown && <CharactersView/> }
       </div>
     )
   }
-  renderTopNav() {
+  renderHeader() {
     return (
-      <div className="topNav">
-        <div className="left">
-          <i className="material-icons" onClick={() => this.backToLobby()}>exit_to_app</i>
-        </div>
-        <div className="middle">{ this.props.campaign.name }</div>
-        <div className="right">
-          <span>{ this.props.userName }</span> &nbsp;
-          <i className="material-icons">face</i>
-        </div>
-      </div>
+      <header>
+        <Menu label={this.props.campaign.name }>
+          <MenuItem onClick={() => this.showActionView()}>
+            The Action
+          </MenuItem>
+          <MenuItem onClick={() => this.showCharactersView()}>
+            Characters
+          </MenuItem>
+          { this.props.campaign.can_manage && 
+            <MenuItem onClick={() => this.showAdminView()}>
+              Admin
+            </MenuItem> }
+          <MenuItem onClick={() => this.backToLobby()}>
+            Exit Campaign
+          </MenuItem>
+        </Menu>
+        <div><img src="/static/img/favicon-32x32.png"/></div>
+        <UserMenu/>
+      </header>
     )
+  }
+  showActionView() {
+    this.setState({ actionViewShown: true, charactersViewShown: false, adminViewShown: false })
+  }
+  showCharactersView() {
+    this.setState({ actionViewShown: false, charactersViewShown: true, adminViewShown: false })
+  }
+  showAdminView() {
+    this.setState({ actionViewShown: false, charactersViewShown: false, adminViewShown: true })
   }
   backToLobby() {
     this.props.dispatch({ type: actions.CLOSE_CAMPAIGN })
-  }
-  renderCharactersView() {
-    return (
-      <div>
-        <h3>My characters</h3>
-        { (!this.props.characters || !this.props.characters.length) && <div>No characters yet.</div> }
-        { !!this.props.characters && !!this.props.characters.length && this.renderCharacterList() }
-        { this.renderNewCharacterForm() }
-      </div>
-    )
-  }
-  renderCharacterList() {
-    return this.props.characters.map((ele) => <div key={ele.id}>{ele.name}</div>)
-  }
-  renderNewCharacterForm() {
-    return (
-      <div>
-        <form onSubmit={(event) => this.handleCharacterFormSubmit(event)}>
-          <input onChange={(event) => this.handleCharacterNameChange(event)} value={this.state.characterNameInput} placeholder="New character name"/>
-          <button type="submit" disabled={this.state.characterNameInput.length ? "" : "disabled"}>
-            Submit
-          </button>
-        </form>
-      </div>
-    )
-  }
-  handleCharacterNameChange(event) {
-    this.setState({ characterNameInput: event.target.value })
-  }
-  handleCharacterFormSubmit(event) {
-    event.preventDefault()
-    if (this.state.characterNameInput.length) {
-      this.props.dispatch({
-        type: actions.CREATE_CHARACTER,
-        props: { name: this.state.characterNameInput }
-      })
-    }
-    this.setState({ characterNameInput: "" })
-  }
-  renderTicketGenerator() {
-    return (
-      <div>
-        <h3>Admin</h3>
-        <button onClick={() => this.generateTicket()}>Generate a ticket</button>
-        { this.state.ticket && this.renderTicket() }
-        { this.state.ticketError && this.renderTicketError() }
-      </div>
-    )
-  }
-  renderTicket() {
-    return (
-      <div>
-        <div>{this.state.ticket}</div>
-        <div>
-          Give this to your players and tell them to enter it through the form
-          under "Join a Campaign." Ticket expires 3 days from issue.
-        </div>
-      </div>
-    )
-  }
-  renderTicketError() {
-    return (
-      <div style={{ color: "red" }}>{this.state.ticketError}</div>
-    )
-  }
-  generateTicket() {
-    this.setState({ ticket: "", ticketError: "" })
-    apiConnector.generateTicket(this.props.player, this.props.campaign)
-      .then((response) => {
-        this.setState({ ticket: response.data.ticket, ticketError: "" })
-      })
-      .catch((error) => {
-        this.setState({ ticket: "", ticketError: "failed. oops." })
-      })
   }
 }
 const mapState = (state) => {

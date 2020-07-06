@@ -6,8 +6,14 @@ import config from "./config"
 let DEBUG = config("DEBUG");
 
 // State properties:
-// .players ... a hash of players by ID *string*.
-// (to be continued)
+// .campaigns             A hash of campaigns for the current player, indexed by ID string.
+// .campaignsKnown        True if .campaigns is completely loaded for the current player.
+// .characters            A hash of characters for the current campaign, indexed by ID string.
+// .charactersKnown       True if .characters is completely loaded for the current player and
+//                        campaign.
+// .players               A hash of players for the current user, indexed by ID string.
+// .playersKnown          True if .players is completely loaded for the current user.
+// .user                  The current user.
 
 function stateReducer(state = 0, action) {
   if (DEBUG) console.log("ACTION", state, action)
@@ -107,7 +113,7 @@ function createPlayer(state, props) {
 }
 
 function playerCreated(state, player) {
-  state = updatePlayerData(state, [ player ])
+  state = updatePlayers(state, [ player ])
   state = selectPlayer(state, player)
   return unshowApiBlock(state)
 }
@@ -119,11 +125,9 @@ function createCampaign(state, props) {
 }
 
 function campaignCreated(state, campaign) {
-  // Synthesize the annotated campaign list.
+  // Synthesize the annotated campaign element.
   campaign = Object.assign(campaign, { creator: state.player, can_manage: true })
-  state = updateState(state, {
-      campaigns: (state.campaigns || []).concat(campaign),
-      campaignsKnown: true })
+  state = updateCampaigns(state, [ campaign ])
   return unshowApiBlock(state)
 }
 
@@ -134,7 +138,7 @@ function createCharacter(state, props) {
 }
 
 function characterCreated(state, character) {
-  state = updateState(state, { character, characters: (state.characters || []).concat(character) })
+  state = updateCharacters(state, [ character ])
   return unshowApiBlock(state)
 }
 
@@ -170,9 +174,7 @@ function listPlayersForUser(state) {
 }
 
 function playersKnown(state, players) {
-  players = players || []
-  state = updatePlayerData(state, players)
-  state = updateState(state, { playersKnown: true })
+  state = updatePlayers(state, players, true)
   return unshowApiBlock(state)
 }
 
@@ -191,24 +193,27 @@ function campaignsKnown(state, playerCampaigns) {
   playerCampaigns = playerCampaigns || []
   const campaigns = playerCampaigns.map((pc) => 
     Object.assign({}, pc.campaign, { can_manage: pc.can_manage }))
-  state = updateState(state, { campaigns, campaignsKnown: true })
+  state = updateCampaigns(state, campaigns, true)
   return unshowApiBlock(state)
 }
 
 function wantCharacters(state) {
-  let promise;
-  if (state.campaign.can_manage) {
-    promise = apiConnector.listCharactersForCampaign(state.campaign)
+  if (!state.charactersKnown) {
+    let promise;
+    if (state.campaign.can_manage) {
+      promise = apiConnector.listCharactersForCampaign(state.campaign)
+    }
+    else {
+      promise = apiConnector.listCharactersForPlayerAndCampaign(state.player, state.campaign)
+    }
+    handleApiCall(promise, actions.CHARACTERS_KNOWN)
+    state = showApiBlock(state)
   }
-  else {
-    promise = apiConnector.listCharactersForPlayerAndCampaign(state.player, state.campaign)
-  }
-  handleApiCall(promise, actions.CHARACTERS_KNOWN)
-  return showApiBlock(state)
+  return state
 }
 
 function charactersKnown(state, characters) {
-  state = updateState(state, { characters: characters || [] })
+  state = updateCharacters(state, characters, true)
   return unshowApiBlock(state)
 }
 
@@ -218,22 +223,36 @@ function updatePlayer(state, props) {
 }
 
 function playerUpdated(state, player) {
-  state = updatePlayerData(state, [ player ])
+  state = updatePlayers(state, [ player ])
   return unshowApiBlock(state)
 }
 
 //=============================================
 // HELPERS
 
-function updatePlayerData(state, newPlayers) {
-  let players = (state.players || {})
-  newPlayers.forEach((p) => { players[p.id.toString()] = p })
-  let player = state.player && players[state.player.id.toString()]
-  let userName = state.userName;
-  if (player && player.name) {
-    userName = player.name;
-  }
-  return updateState(state, { player, players, userName })
+function updatePlayers(state, datalist, complete = false) {
+  state = updateDictionary(state, "players", datalist, complete);
+  let player = state.player && state.players[state.player.id.toString()]
+  let userName = player ? player.name : state.userName;
+  return updateState(state, { player, userName })
+}
+
+function updateCampaigns(state, datalist, complete = false) {
+  return updateDictionary(state, "campaigns", datalist, complete);
+}
+
+function updateCharacters(state, datalist, complete = false) {
+  return updateDictionary(state, "characters", datalist, complete);
+}
+
+function updateDictionary(state, key, datalist, complete) {
+  if (!datalist) datalist = []
+  let newDict = Object.assign({}, state[key])
+  datalist.forEach((ele) => { newDict[ele.id.toString()] = ele })
+  let newState = {}
+  newState[key] = newDict;
+  if (complete) newState[key + "Known"] = true;
+  return updateState(state, newState)
 }
 
 function updateState(state, newProps) {

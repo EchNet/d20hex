@@ -3,6 +3,18 @@
   margin: auto;
 }
 
+.PlayerLobby header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+}
+
+.PlayerLobby header img.logo {
+  border: solid 2px #999;
+}
+
 .PlayerLobby a[href]:hover {
   text-decoration: none;
 }

@@ -137,7 +137,7 @@ class CampaignPathView extends React.Component {
   }
   findCampaign() {
     const matchedCampaignId = this.matchedCampaignId;
-    return this.props.campaigns.find((ele) => ele.id === matchedCampaignId)
+    return this.props.campaigns[this.matchedCampaignId.toString()]
   }
   get matchedCampaignId() {
     return parseInt(this.props.match.params.campaignId)
