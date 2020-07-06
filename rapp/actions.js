@@ -23,7 +23,8 @@ export const actions = {
   "SHOW_ALERT": "SHOW_ALERT",
   "LOGIN": "LOGIN",
   "UPDATE_PLAYER": "UPDATE_PLAYER",
-  "PLAYER_UPDATED": "PLAYER_UPDATED"
+  "PLAYER_UPDATED": "PLAYER_UPDATED",
+  "WANT_CAMPAIGN_TIME": "WANT_CAMPAIGN_TIME"
 }
 
 export default actions

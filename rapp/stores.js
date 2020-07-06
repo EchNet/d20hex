@@ -95,7 +95,7 @@ function selectCampaign(state, campaign) {
   const currentId = state.campaign ? state.campaign.id : null;
   const newId = campaign ? campaign.id : null;
   if (currentId !== newId) {
-    state = updateState(state, { campaign, characters: null })
+    state = updateState(state, { campaign, characters: null, charactersKnown: false })
   }
   return state;
 }
@@ -225,6 +225,10 @@ function updatePlayer(state, props) {
 function playerUpdated(state, player) {
   state = updatePlayers(state, [ player ])
   return unshowApiBlock(state)
+}
+
+function wantCampaignTime(state) {
+  return updateState(state, { currentTime: { day: 15, hour: 23, minute: 1, second: 9 }})
 }
 
 //=============================================
