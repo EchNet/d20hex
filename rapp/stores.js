@@ -5,6 +5,10 @@ import config from "./config"
 
 let DEBUG = config("DEBUG");
 
+// State properties:
+// .players ... a hash of players by ID *string*.
+// (to be continued)
+
 function stateReducer(state = 0, action) {
   if (DEBUG) console.log("ACTION", state, action)
   if (!action.type) throw "null action type";
@@ -103,8 +107,7 @@ function createPlayer(state, props) {
 }
 
 function playerCreated(state, player) {
-  const players = (state.players || []).concat([ player ])
-  state = updateState(state, { players })
+  state = updatePlayerData(state, [ player ])
   state = selectPlayer(state, player)
   return unshowApiBlock(state)
 }
@@ -168,7 +171,9 @@ function listPlayersForUser(state) {
 
 function playersKnown(state, players) {
   players = players || []
-  return unshowApiBlock(updateState(state, { players, playersKnown: true }))
+  state = updatePlayerData(state, players)
+  state = updateState(state, { playersKnown: true })
+  return unshowApiBlock(state)
 }
 
 function listCampaignsForPlayer(state) {
@@ -213,17 +218,23 @@ function updatePlayer(state, props) {
 }
 
 function playerUpdated(state, player) {
-  state = updateState(state, { player, userName: player.name })
-  state.players.forEach((ele) => {
-    if (ele.id == player.id) {
-      Object.assign(ele, player)
-    }
-  })
+  state = updatePlayerData(state, [ player ])
   return unshowApiBlock(state)
 }
 
 //=============================================
 // HELPERS
+
+function updatePlayerData(state, newPlayers) {
+  let players = (state.players || {})
+  newPlayers.forEach((p) => { players[p.id.toString()] = p })
+  let player = state.player && players[state.player.id.toString()]
+  let userName = state.userName;
+  if (player && player.name) {
+    userName = player.name;
+  }
+  return updateState(state, { player, players, userName })
+}
 
 function updateState(state, newProps) {
   return Object.assign({}, state, newProps)
