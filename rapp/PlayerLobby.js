@@ -3,9 +3,9 @@ import { connect } from 'react-redux'
 import { Link } from "react-router-dom"
 
 import actions from "./actions"
-import FatHeader from "./FatHeader"
 import Modal from "./Modal"
 import SingleTextValueForm from "./SingleTextValueForm"
+import UserMenu from "./UserMenu"
 import config from "./config"
 import "./PlayerLobby.css"
 
@@ -42,7 +42,14 @@ class PlayerLobby extends React.Component {
   render() {
     return (
       <div className="PlayerLobby">
-        <FatHeader/>
+        <header>
+          <div className="leftSide">
+            <img className="logo" src="/static/img/logo.png" height="120" alt="d20hex"/>
+          </div>
+          <div className="rightSide">
+            <UserMenu/>
+          </div>
+        </header>
         <div className="body">
           <h2>My Campaigns</h2>
           <div className="campaignListBox">
@@ -103,7 +110,8 @@ class PlayerLobby extends React.Component {
 }
 
 const mapState = (state) => {
-  return Object.assign({}, state);
+  const flattenedCampaigns = Object.keys(state.campaigns).map((ele) => state.campaigns[ele])
+  return Object.assign({}, state, { campaigns: flattenedCampaigns })
 }
 
 export default connect(mapState)(PlayerLobby)
