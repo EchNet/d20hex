@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import { HashRouter as Router, Switch, Redirect, Route} from "react-router-dom"
 
 import Onboarding from "./Onboarding"
-import CampaignPicker from "./CampaignPicker"
+import PlayerLobby from "./PlayerLobby"
 import CampaignView from "./CampaignView"
 import WaitScreen from "./WaitScreen"
 import ErrorScreen from "./ErrorScreen"
@@ -101,7 +101,7 @@ class PlayerPathView extends React.Component {
           <Switch>
             <Route path="/player/:playerId/campaign/:campaignId"
                 component={ConnectedCampaignPathView}/>
-            <Route path="*" component={CampaignPicker}/>
+            <Route path="*" component={PlayerLobby}/>
           </Switch>
         )
       }
