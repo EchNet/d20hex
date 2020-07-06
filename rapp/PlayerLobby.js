@@ -7,9 +7,9 @@ import FatHeader from "./FatHeader"
 import Modal from "./Modal"
 import SingleTextValueForm from "./SingleTextValueForm"
 import config from "./config"
-import "./CampaignPicker.css"
+import "./PlayerLobby.css"
 
-class CampaignPicker extends React.Component {
+class PlayerLobby extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -41,7 +41,7 @@ class CampaignPicker extends React.Component {
   }
   render() {
     return (
-      <div className="CampaignPicker">
+      <div className="PlayerLobby">
         <FatHeader/>
         <div className="body">
           <h2>My Campaigns</h2>
@@ -106,4 +106,4 @@ const mapState = (state) => {
   return Object.assign({}, state);
 }
 
-export default connect(mapState)(CampaignPicker)
+export default connect(mapState)(PlayerLobby)

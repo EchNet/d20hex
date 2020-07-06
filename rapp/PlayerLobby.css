@@ -1,23 +1,23 @@
-.CampaignPicker {
+.PlayerLobby {
   max-width: 780px;
   margin: auto;
 }
 
-.CampaignPicker a[href]:hover {
+.PlayerLobby a[href]:hover {
   text-decoration: none;
 }
 
-.CampaignPicker .body {
+.PlayerLobby .body {
   margin-left: 20px;
   margin-right: 20px;
 }
 
-.CampaignPicker .campaignListBox {
+.PlayerLobby .campaignListBox {
   margin-bottom: 20px;
   max-width: 800px;
 }
 
-.CampaignPicker .campaignView {
+.PlayerLobby .campaignView {
   margin-top: 10px;
   border-radius: 10px;
   border: solid 2px #777;
@@ -25,11 +25,11 @@
   cursor: pointer;
 }
 
-.CampaignPicker .campaignView:hover {
+.PlayerLobby .campaignView:hover {
   border: solid 2px #c98232;
 }
 
-.CampaignPicker .campaignView .campaignIconView {
+.PlayerLobby .campaignView .campaignIconView {
   width: 56px;
   height: 56px;
   border: solid 1px black;
@@ -38,12 +38,12 @@
   background-color: #6699ff;
 }
 
-.CampaignPicker .campaignView .campaignNameView {
+.PlayerLobby .campaignView .campaignNameView {
   color: black;
   font-size: 20px;
 }
 
-.CampaignPicker .campaignView .campaignGoView {
+.PlayerLobby .campaignView .campaignGoView {
   float: right;
   font-size: 24px;
   font-weight: 520;
@@ -51,19 +51,19 @@
   visibility: hidden;
 }
 
-.CampaignPicker .campaignView:hover .campaignGoView {
+.PlayerLobby .campaignView:hover .campaignGoView {
   visibility: visible;
 }
 
-.CampaignPicker .push-top {
+.PlayerLobby .push-top {
   margin-top: 40px;
 }
 
-.CampaignPicker .nix {
+.PlayerLobby .nix {
   text-decoration: line-through;
 }
 
-.CampaignPicker .tag {
+.PlayerLobby .tag {
   color: #c98232;
   border: solid 1px #c98232;
   margin-left: 10px;
@@ -71,7 +71,7 @@
   border-radius: 5px;
 }
 
-.CampaignPicker .ModalWindow .body {
+.PlayerLobby .ModalWindow .body {
   width: 400px;
   margin-top: 10px;
   margin-bottom: 15px;
