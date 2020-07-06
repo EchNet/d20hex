@@ -1,6 +1,7 @@
 import * as React from "react"
-import { connect } from 'react-redux';
+import { connect } from "react-redux"
 
+import { Menu, MenuItem } from "./Menu"
 import Modal from "./Modal"
 import SingleTextValueForm from "./SingleTextValueForm"
 import actions from "./actions"
@@ -22,45 +23,18 @@ export class FatHeader extends React.Component {
           <img className="logo" src="/static/img/logo.png" height="120" alt="d20hex"/>
         </div>
         <div className="rightSide">
-          { this.renderMenu() }
+          <Menu right="right" label={this.props.userName}>
+            <MenuItem onClick={() => this.openOrClosePlayerNameModal(true)}>
+              Change player name
+            </MenuItem>
+            <MenuItem onClick={() => window.location = "/logout"}>
+              Log out
+            </MenuItem>
+          </Menu>
         </div>
         { this.state.playerNameModalShown && this.renderPlayerNameModal() }
       </header>
     )
-  }
-  renderMenu() {
-    return (
-      <div className="Menu">
-        <button onMouseEnter={() => this.toggleMenu()} onMouseLeave={() => this.toggleMenu() }>
-          {this.props.userName}
-        </button>
-        { this.state.userMenuShown && (
-          <ul onMouseEnter={() => this.toggleMenu()} onMouseLeave={() => this.toggleMenu()}>
-            <li data-action="changePlayerName" onClick={(event) => this.handleUserMenuClick(event)}>
-              Change player name
-            </li>
-            <li data-action="logout" onClick={(event) => this.handleUserMenuClick(event)}>
-              Log out
-            </li>
-          </ul>
-        )}
-      </div>
-    )
-  }
-  toggleMenu() {
-    this.setState((oldState) => ({ userMenuShown: !oldState.userMenuShown }))
-  }
-  handleUserMenuClick(event) {
-    event.preventDefault()
-    this.toggleMenu(false)
-    switch (event.target.getAttribute("data-action")) {
-    case "changePlayerName":
-      this.openOrClosePlayerNameModal(true);
-      break;
-    case "logout":
-      window.location = "/logout";
-      break;
-    }
   }
   openOrClosePlayerNameModal(playerNameModalShown) {
     this.setState({ playerNameModalShown });
