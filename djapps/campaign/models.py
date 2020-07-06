@@ -28,6 +28,17 @@ class Campaign(models.Model):
       verbose_name=_("name"),
   )
 
+  # The current time.  There can be only one active moment per campaign.
+  # This is the number of seconds since the "start" of the campaign, the start of
+  # an arbitrary day, the choice of the campaign creator.
+  abs_seconds = models.PositiveIntegerField(
+      blank=False,
+      db_index=False,
+      null=False,
+      default=0,
+      verbose_name=_("absolute seconds"),
+  )
+
 
 class PlayerCampaignMembership(models.Model):
   """

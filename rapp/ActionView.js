@@ -5,19 +5,31 @@ import actions from "./actions"
 import "./ActionView.css"
 
 
+function tfmt(n) {
+  if (n < 0 || n > 99) return "??"
+  n = Math.floor(n)
+  return (n < 10 ? "0" : "") + n
+}
+
 export class ActionView extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {
-    }
   }
   componentDidMount() {
     this.props.dispatch({ type: actions.WANT_CHARACTERS })
   }
   render() {
+    const t = this.props.currentTime;
     return (
       <div className="ActionView">
-        ACTION HERE.
+        <div className="toolbar">
+          <div>
+            { t && <span>Day {t.day}</span> }
+          </div>
+          <div>
+            { t && <span>{tfmt(t.hour)}:{tfmt(t.minute)}:{tfmt(t.second)}</span> }
+          </div>
+        </div>
       </div>
     )
   }
