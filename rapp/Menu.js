@@ -15,7 +15,9 @@ export class Menu extends React.Component {
       <div className={"Menu" + (this.props.right ? " right" : "")}>
         <button onMouseEnter={() => this.toggleDropdown()}
             onMouseLeave={() => this.toggleDropdown() }>
-          {this.props.label}
+          { !this.props.right && <i className="material-icons">menu</i> }
+          <span>{this.props.label}</span>
+          { !!this.props.right && <i className="material-icons">menu</i> }
         </button>
         { this.state.dropdownShown && (
           <ul onMouseEnter={() => this.toggleDropdown()}

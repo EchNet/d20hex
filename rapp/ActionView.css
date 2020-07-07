@@ -1,3 +1,57 @@
 .ActionView {
-  margin: 5px 10px 0;
+}
+.ActionView .infobar {
+  padding: 0 10px;
+  display: flex;
+  justify-content: space-between;
+  background-color: #f8f8f8;
+  border-bottom: ridge 3px #cccccc;
+  font-size: 18px;
+}
+.ActionView .infobar .material-icons {
+  font-size: 15px;
+}
+.ActionView .tabCardContainer {
+  position: relative;
+}
+.ActionView .tab {
+  cursor: pointer;
+  padding: 10px 0;
+}
+.ActionView .tab.open {
+  background-color: #88ccff;
+}
+.ActionView .tab i {
+  border: solid 1px white;
+  transform: translate(0, 2px);
+  border-radius: 4px;
+  padding: 0;
+  margin-left: 3px;
+}
+.ActionView .tab:hover i {
+  border-color: black;
+}
+.ActionView .card {
+  position: absolute;
+  padding: 30px;
+  border-top: ridge 3px #cccccc;
+}
+.ActionView .dayValue {
+  color: #aa2aaa;
+  font-weight: 600;
+}
+.ActionView .roundValue {
+  color: #aa2aaa;
+  font-weight: 600;
+}
+.ActionView .whoValue {
+  color: #006212;
+  background-color: #f3f3a8;
+  border: solid 1px #006212;
+  border-radius: 3px;
+  padding: 0px 2px;
+  font-weight: 580;
+}
+.ActionView .whereValue {
+  font-style: italic;
 }

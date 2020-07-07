@@ -209,7 +209,7 @@ function wantCharacters(state) {
     handleApiCall(promise, actions.CHARACTERS_KNOWN)
     state = showApiBlock(state)
   }
-  return state
+  return wantCampaignTime(state)
 }
 
 function charactersKnown(state, characters) {
@@ -228,7 +228,11 @@ function playerUpdated(state, player) {
 }
 
 function wantCampaignTime(state) {
-  return updateState(state, { currentTime: { day: 15, hour: 23, minute: 1, second: 9 }})
+  return updateState(state, {
+    currentTime: { day: 15, hour: 23, minute: 1, second: 9 },
+    currentLocation: { shortName: "Somewhere" },
+    currentMelee: { who: "Bakeer", whosNext: "===", round: 3 }
+  })
 }
 
 //=============================================

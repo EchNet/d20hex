@@ -4,16 +4,21 @@
   padding: 0;
 }
 .Menu button {
-  font-size: 20px;
+  font-size: 16px;
   display: flex;
   border-radius: 0;
-  background-color: #666;
-  color: white;
-  border: solid 1px #666;
+  color: #6a6a6a;
+  background-color: white;
+  border: solid 1px #6a6a6a;
   padding: 4px 8px;
 }
+.Menu button i {
+  margin: 0 2px;
+  font-size: 18px;
+  transform: translate(0, 1px);
+}
 .Menu button:hover {
-  border: dashed 1px white;
+  border: dashed 1px #6a6a6a;
 }
 .Menu ul {
   position: absolute;
@@ -25,6 +30,7 @@
   border-left: solid 1px #444;
   border-right: solid 1px #444;
   border-top: solid 1px #444;
+  font-size: 16px;
 }
 .Menu.right ul {
   right: 0px;
