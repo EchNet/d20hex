@@ -9,9 +9,9 @@
 
 {% block content %}
   {% for conf in configuration %}
-    <config key="{{ conf.key }}" value="{{ conf.value }}"/>
+    <config key="{{ conf.key }}" value="{{ conf.value }}"></config>
   {% endfor %}
-  <div id="root">
+  <div id="root" style="height: 100%;">
     {% for script in scripts %}
       <script src="{{ script }}"></script>
     {% endfor %}

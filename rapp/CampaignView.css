@@ -1,4 +1,10 @@
+.CampaignView {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+}
 .CampaignView header {
+  flex: 0 1 auto;
   display: flex;
   flex-direction: row;
   justify-content: space-between;

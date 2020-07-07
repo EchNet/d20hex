@@ -2,6 +2,7 @@ import * as React from "react"
 import { connect } from 'react-redux';
 
 import actions from "./actions"
+import HexGridRenderer from "./HexGridRenderer"
 import "./ActionView.css"
 
 
@@ -22,6 +23,18 @@ export class ActionView extends React.Component {
   }
   componentDidMount() {
     this.props.dispatch({ type: actions.WANT_CHARACTERS })
+    this.updateCanvas()
+  }
+  componentDidUpdate() {
+    this.updateCanvas()
+  }
+  updateCanvas() {
+    const canvas = this.refs.canvas;
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+    const hgr = new HexGridRenderer(canvas);
+    hgr.clear()
+    hgr.drawGrid()
   }
   render() {
     return (
@@ -36,6 +49,9 @@ export class ActionView extends React.Component {
           <div>
             { this.renderLocationTab(this.props.currentLocation) }
           </div>
+        </div>
+        <div className="canvas">
+          <canvas ref="canvas"></canvas>
         </div>
       </div>
     )
