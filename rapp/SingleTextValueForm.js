@@ -36,6 +36,9 @@ class SingleTextValueForm extends React.Component {
   }
   handleFormSubmit(event) {
     event.preventDefault()
+    if (this.props.clearOnSubmit) {
+      this.setState({ inputValue: "" })
+    }
     this.props.onSubmit && this.props.onSubmit(this.state.inputValue) 
   }
   inputIsValid() {
