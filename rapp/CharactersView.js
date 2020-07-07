@@ -7,12 +7,6 @@ import "./CharactersView.css"
 
 
 export class CharactersView extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      characterNameInput: "",
-    }
-  }
   componentDidMount() {
     this.props.dispatch({ type: actions.WANT_CHARACTERS })
   }
@@ -30,10 +24,10 @@ export class CharactersView extends React.Component {
   renderCharacterList() {
     return this.props.characters.map((ele) => <div key={ele.id}>{ele.name}</div>)
   }
-  handleCharacterFormSubmit(input) {
+  handleCharacterFormSubmit(name) {
     this.props.dispatch({
       type: actions.CREATE_CHARACTER,
-      props: { name: this.state.characterNameInput }
+      props: { name }
     })
   }
 }
