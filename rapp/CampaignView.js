@@ -36,21 +36,23 @@ export class CampaignView extends React.Component {
   renderHeader() {
     return (
       <header>
-        <Menu label={this.props.campaign.name }>
-          <MenuItem onClick={() => this.showActionView()}>
-            The Action
-          </MenuItem>
-          <MenuItem onClick={() => this.showCharactersView()}>
-            Characters
-          </MenuItem>
-          { this.props.campaign.can_manage && 
-            <MenuItem onClick={() => this.showAdminView()}>
-              Admin
-            </MenuItem> }
-          <MenuItem onClick={() => this.backToLobby()}>
-            Exit Campaign
-          </MenuItem>
-        </Menu>
+        <div className="left">
+          <Menu icon="menu" label={this.props.campaign.name }>
+            <MenuItem onClick={() => this.showActionView()}>
+              The Action
+            </MenuItem>
+            <MenuItem onClick={() => this.showCharactersView()}>
+              Characters
+            </MenuItem>
+            { this.props.campaign.can_manage && 
+              <MenuItem onClick={() => this.showAdminView()}>
+                Admin
+              </MenuItem> }
+            <MenuItem onClick={() => this.backToLobby()}>
+              Exit Campaign
+            </MenuItem>
+          </Menu>
+        </div>
         <div><img src="/static/img/favicon-32x32.png"/></div>
         <UserMenu/>
       </header>

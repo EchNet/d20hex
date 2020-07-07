@@ -1,11 +1,8 @@
-.CampaignView {
-}
 .CampaignView header {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
-  background-color: #f3ffdd;
-  border-bottom: ridge 2px #99ed88;
+  padding: 5px 10px;
+  border-bottom: ridge 3px #cccccc;
 }
