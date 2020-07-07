@@ -2,6 +2,8 @@ import * as React from "react"
 import { connect } from 'react-redux';
 
 import { apiConnector } from "./connectors"
+import SingleTextValueForm from "./SingleTextValueForm"
+import actions from "./actions"
 import "./AdminView.css"
 
 
@@ -17,11 +19,17 @@ export class AdminView extends React.Component {
     return (
       <div className="AdminView">
         <h3>Admin</h3>
+        <SingleTextValueForm placeholder="Enter new campaign name"
+            clearOnSubmit="clearOnSubmit"
+            onSubmit={(input) => this.handleNewCampaignName(input)}/>
         <button onClick={() => this.generateTicket()}>Generate a ticket</button>
         { this.state.ticket && this.renderTicket() }
         { this.state.ticketError && this.renderTicketError() }
       </div>
     )
+  }
+  handleNewCampaignName(name) {
+    this.props.dispatch({ type: actions.UPDATE_CAMPAIGN, props: { name }})
   }
   renderTicket() {
     return (

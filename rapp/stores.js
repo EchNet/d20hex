@@ -62,6 +62,10 @@ function stateReducer(state = 0, action) {
     return updatePlayer(state, action.props)
   case actions.PLAYER_UPDATED:
     return playerUpdated(state, action.data)
+  case actions.UPDATE_CAMPAIGN:
+    return updateCampaign(state, action.props)
+  case actions.CAMPAIGN_UPDATED:
+    return campaignUpdated(state, action.data)
   }
   if (DEBUG) console.log("warning: action unhandled")
   return state || {};
@@ -235,6 +239,16 @@ function wantCampaignTime(state) {
   })
 }
 
+function updateCampaign(state, props) {
+  handleApiCall(apiConnector.updateCampaign(state.campaign, props.name), actions.CAMPAIGN_UPDATED)
+  return showApiBlock(state)
+}
+
+function campaignUpdated(state, campaign) {
+  state = updateCampaigns(state, [ campaign ])
+  return unshowApiBlock(state)
+}
+
 //=============================================
 // HELPERS
 
@@ -246,7 +260,9 @@ function updatePlayers(state, datalist, complete = false) {
 }
 
 function updateCampaigns(state, datalist, complete = false) {
-  return updateDictionary(state, "campaigns", datalist, complete);
+  state = updateDictionary(state, "campaigns", datalist, complete);
+  let campaign = state.campaign && state.campaigns[state.campaign.id.toString()]
+  return updateState(state, { campaign })
 }
 
 function updateCharacters(state, datalist, complete = false) {
@@ -256,7 +272,10 @@ function updateCharacters(state, datalist, complete = false) {
 function updateDictionary(state, key, datalist, complete) {
   if (!datalist) datalist = []
   let newDict = Object.assign({}, state[key])
-  datalist.forEach((ele) => { newDict[ele.id.toString()] = ele })
+  datalist.forEach((ele) => {
+    const key = ele.id.toString()
+    newDict[key] = Object.assign({}, newDict[key], ele)
+  })
   let newState = {}
   newState[key] = newDict;
   if (complete) newState[key + "Known"] = true;

@@ -54,7 +54,7 @@ class CreateCampaignView(generics.CreateAPIView):
     return super().perform_create(serializer)
 
 
-class CampaignView(generics.RetrieveAPIView):
+class CampaignView(generics.RetrieveUpdateDestroyAPIView):
   serializer_class = CampaignSerializer
   permission_classes = (permissions.AllowAny, )
 
