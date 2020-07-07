@@ -13,7 +13,7 @@ import actions from "./actions"
 export class App extends React.Component {
   render() {
     return (
-      <div className="RootContainer">
+      <div style={{ height: "100%" }}>
         <MainView/>
         { this.props.apiblocked && <WaitScreen/> }
         { this.props.errorMessage && <ErrorScreen message={this.props.errorMessage} fatal={true}/> }
