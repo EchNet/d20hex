@@ -20,21 +20,38 @@ export class ActionView extends React.Component {
       meleeCardShown: false,
       locationCardShown: false
     }
+    this.boundUpdateCanvas = this.updateCanvas.bind(this)
   }
   componentDidMount() {
     this.props.dispatch({ type: actions.WANT_CHARACTERS })
     this.updateCanvas()
+    window.addEventListener("resize", this.boundUpdateCanvas)
   }
   componentDidUpdate() {
-    this.updateCanvas()
+  }
+  componentWillUnmount() {
+    window.addEventListener("resize", this.boundUpdateCanvas)
   }
   updateCanvas() {
+    this.resizeCanvas()
+    this.scheduleCanvasRedraw()
+  }
+  resizeCanvas() {
     const canvas = this.refs.canvas;
-    canvas.width = canvas.clientWidth;
     canvas.height = canvas.clientHeight;
-    const hgr = new HexGridRenderer(canvas);
-    hgr.clear()
-    hgr.drawGrid()
+    canvas.width = canvas.clientWidth;
+  }
+  scheduleCanvasRedraw() {
+    const self = this
+    if (this.redrawTimeout) {
+      clearTimeout(this.redrawTimeout);
+    }
+    this.redrawTimeout = setTimeout(() => {
+      self.redrawCanvas()
+    }, 400)
+  }
+  redrawCanvas() {
+    new HexGridRenderer(this.refs.canvas).clear().drawGrid()
   }
   render() {
     return (
@@ -50,9 +67,7 @@ export class ActionView extends React.Component {
             { this.renderLocationTab(this.props.currentLocation) }
           </div>
         </div>
-        <div className="canvas">
-          <canvas ref="canvas"></canvas>
-        </div>
+        <canvas ref="canvas"></canvas>
       </div>
     )
   }

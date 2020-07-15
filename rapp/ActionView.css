@@ -60,10 +60,7 @@
 .ActionView .whereValue {
   font-style: italic;
 }
-.ActionView div.canvas {
+.ActionView canvas {
   flex: 1 1 auto;
-}
-.ActionView div.canvas canvas {
   width: 100%;
-  height: 100%;
 }
