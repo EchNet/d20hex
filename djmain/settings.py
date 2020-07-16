@@ -56,6 +56,7 @@ INSTALLED_APPS = (
     "campaign",
     "character",
     "player",
+    "tempdoc",
     "utils")
 
 MIDDLEWARE = (
