@@ -36,7 +36,7 @@ export class HexGridRenderer {
     this.context = canvas.getContext("2d");
     this.options = Object.assign({}, {
       radius: 36,
-      strokeStyle: "rgba(0,0,0,0.25)"
+      strokeStyle: "rgb(200,200,200)"
     }, options);
   }
   clear() {
@@ -86,6 +86,58 @@ export class HexGridRenderer {
     }
 
     context.stroke();
+  }
+  drawBoundingHex(point) {
+    // TODO: optimize.
+    console.log("drawBoundingHex", point)
+
+    // Radius is the distance between adjacent vertices or between the center and a vertex.
+    const radius = this.options.radius;
+
+    // Unit distance is the distance between corresponding points of any two adjacent hexes.
+    const unitDistance = radius * SQRT3;
+
+    // Fill the whole canvas.
+    const width = this.canvas.width;
+    const height = this.canvas.height;
+
+
+    // Start at the lower left corner and work up toward the upper left corner, then the
+    // upper right.  Draw stripes that originate at the edge and proceed 30 degrees downward
+    // and to the right.
+    var closest = null;
+    var cx0 = 0;
+    var cy0 = (Math.floor(height / unitDistance) + 1) * unitDistance;
+    for (let stripeCount = 0; cx0 < width + radius; ++stripeCount) {
+      let cx = cx0;
+      let cy = cy0;
+      for (let cellCount = 0; cx < width + radius && cy < height + unitDistance / 2; ++cellCount) {
+        const distance = dist(cx, cy, point.x, point.y)
+        if (!closest || distance < closest.distance) {
+          closest = { distance, cx, cy }
+        }
+        cx += unitDistance * COSDEG30;
+        cy += unitDistance * SINDEG30;
+      }
+      if (cy0 < 0.0001 /* == 0 */) {
+        cx0 += radius * 3;
+      }
+      else {
+        cy0 -= unitDistance;
+      }
+    }
+    if (closest) {
+      console.log("CLOSEST", closest)
+      const context = this.context;
+      context.beginPath();
+      context.strokeStyle = this.options.hoverStrokeStyle;
+      context.lineWidth = 1;
+      describeHexagon(closest.cx, closest.cy, radius, (x, y, index) => {
+        console.log("DRAW IT", x, y, index)
+        context[index == 0 ? "moveTo" : "lineTo"](x, y);
+      })
+      context.stroke();
+    }
   }
 }
 
