@@ -2,7 +2,8 @@ import * as React from "react"
 import { connect } from 'react-redux';
 
 import actions from "./actions"
-import HexGridRenderer from "./HexGridRenderer"
+import Map from "./Map"
+import MapToolbox from "./MapToolbox"
 import "./ActionView.css"
 
 
@@ -12,59 +13,18 @@ function tfmt(n) {
   return (n < 10 ? "0" : "") + n
 }
 
-function eventPoint(event) {
-  var rect = event.target.getBoundingClientRect();
-  var x = event.clientX - rect.left;
-  var y = event.clientY - rect.top;
-  return { x, y }
-}
-
 export class ActionView extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      mapToolboxState: null,
       timeCardShown: false,
       meleeCardShown: false,
       locationCardShown: false
     }
-    this.boundUpdateCanvas = this.updateCanvas.bind(this)
   }
   componentDidMount() {
     this.props.dispatch({ type: actions.WANT_CHARACTERS })
-    this.updateCanvas()
-    window.addEventListener("resize", this.boundUpdateCanvas)
-  }
-  componentDidUpdate() {
-  }
-  componentWillUnmount() {
-    window.addEventListener("resize", this.boundUpdateCanvas)
-  }
-  updateCanvas() {
-    this.resizeCanvas()
-    this.scheduleCanvasRedraw()
-  }
-  resizeCanvas() {
-    [
-      this.refs.backgroundCanvas,
-      this.refs.foregroundCanvas,
-      this.refs.feedbackCanvas,
-      this.refs.gestureCanvas
-    ].forEach((canvas) => {
-      canvas.height = canvas.clientHeight;
-      canvas.width = canvas.clientWidth;
-    })
-  }
-  scheduleCanvasRedraw() {
-    const self = this
-    if (this.redrawTimeout) {
-      clearTimeout(this.redrawTimeout);
-    }
-    this.redrawTimeout = setTimeout(() => {
-      self.redrawCanvas()
-    }, 400)
-  }
-  redrawCanvas() {
-    new HexGridRenderer(this.refs.backgroundCanvas).clear().drawGrid()
   }
   render() {
     return (
@@ -79,38 +39,13 @@ export class ActionView extends React.Component {
           <div>
             { this.renderLocationTab(this.props.currentLocation) }
           </div>
+          <MapToolbox onChange={(event) => this.handleMapToolboxChange(event)}/>
         </div>
-        <div className="canvasContainer">
-          <canvas ref="backgroundCanvas"></canvas>
-          <canvas ref="foregroundCanvas"></canvas>
-          <canvas ref="feedbackCanvas"></canvas>
-          <canvas ref="gestureCanvas"
-            onMouseEnter={(event) => this.handleMouseEnter(event)}
-            onMouseLeave={(event) => this.handleMouseLeave(event)}
-            onMouseMove={(event) => this.handleMouseMove(event)}
-            onMouseDown={(event) => this.handleMouseDown(event)}
-            onMouseUp={(event) => this.handleMouseUp(event)}
-            ></canvas>
-        </div>
+        <Map/>
       </div>
     )
   }
-  handleMouseEnter(event) {
-    this.handleMouseMove(event)
-  }
-  handleMouseLeave(event) {
-    new HexGridRenderer(this.refs.feedbackCanvas).clear()
-  }
-  handleMouseMove(event) {
-    console.log('drawBoundingHex', event)
-    //new HexGridRenderer(this.refs.feedbackCanvas).clear().drawBoundingHex(eventPoint(event))
-    new HexGridRenderer(this.refs.feedbackCanvas, {
-      strokeStyle: "rgb(200,0,0)"
-    }).clear().drawBoundingHex(eventPoint(event))
-  }
-  handleMouseDown(event) {
-  }
-  handleMouseUp(event) {
+  handleMapToolboxChange(event) {
   }
   renderMeleeTab(m) {
     return (

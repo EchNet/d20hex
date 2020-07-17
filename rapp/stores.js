@@ -235,7 +235,7 @@ function wantCampaignTime(state) {
   return updateState(state, {
     currentTime: { day: 15, hour: 23, minute: 1, second: 9 },
     currentLocation: { shortName: "Somewhere" },
-    currentMelee: { who: "Bakeer", whosNext: "===", round: 3 }
+    currentMelee: { who: "whose turn", whosNext: "===", round: 3 }
   })
 }
 

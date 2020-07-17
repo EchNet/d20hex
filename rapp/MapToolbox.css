@@ -1,0 +1,45 @@
+.MapToolbox {
+  background-color: #fefefe;
+  border: solid 1px #dddddd;
+  border-radius: 5px;
+  position: absolute;
+  top: 100px;
+  z-index: 30;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  padding: 10px;
+  width: 64px;
+}
+.MapToolbox .tool {
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 4px auto;
+  border: 2px solid rgba(0,0,0,0);
+}
+.MapToolbox .tool:hover {
+  border: 2px solid rgba(128,0,0,0.5);
+}
+.MapToolbox .tool.selected:not(:hover) {
+  border: 2px ridge red; 
+}
+.MapToolbox .grabber {
+  width: 35px;
+  height: 35px;
+}
+.MapToolbox .bg {
+  width: 25px;
+  height: 25px;
+}
+.MapToolbox .tool i.material-icons {
+  font-size: 32px;
+}
+.MapToolbox .tool.white:not(.selected) {
+  border: 2px solid gray; 
+}
+.MapToolbox .tool.selected {
+  border: 2px ridge black; 
+}
+.MapToolbox hr {
+  margin-top: 5px;
+  border-top: solid 1px #555;
+  margin-bottom: 5px;
+}
