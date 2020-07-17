@@ -9,7 +9,6 @@ export class Map extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      toolboxState: null,
     }
     this.boundUpdateCanvas = this.updateCanvas.bind(this)
   }
@@ -50,10 +49,10 @@ export class Map extends React.Component {
   render() {
     return (
       <div className="Map">
-        <canvas ref="backgroundCanvas"></canvas>
-        <canvas ref="foregroundCanvas"></canvas>
-        <canvas ref="feedbackCanvas"></canvas>
-        <canvas ref="gestureCanvas"
+        <canvas key="backgroundCanvas" ref="backgroundCanvas"></canvas>
+        <canvas key="foregroundCanvas" ref="foregroundCanvas"></canvas>
+        <canvas key="feedbackCanvas" ref="feedbackCanvas"></canvas>
+        <canvas key="gestureCanvas" ref="gestureCanvas"
           onMouseEnter={(event) => this.handleMouseEnter(event)}
           onMouseLeave={(event) => this.handleMouseLeave(event)}
           onMouseMove={(event) => this.handleMouseMove(event)}
@@ -67,16 +66,51 @@ export class Map extends React.Component {
     this.handleMouseMove(event)
   }
   handleMouseLeave(event) {
-    new HexGridRenderer(this.refs.feedbackCanvas).clear()
+    this.clearAllFeedback();
   }
   handleMouseMove(event) {
-    new HexGridRenderer(this.refs.feedbackCanvas, {
-      strokeStyle: "rgb(200,0,0)"
-    }).clear().drawBoundingHex(Map.eventPoint(event))
+    this.clearAllFeedback();
+    const selectedTool = this.selectedTool;
+    if (selectedTool[0] == "bg") {
+      const hex = this.getBoundingHexOfEvent(event)
+      if (hex) {
+        if (this.state.dragging) {
+          this.assignColorToHex(hex, selectedTool[1])
+        }
+        else {
+          new HexGridRenderer(this.refs.feedbackCanvas, { strokeStyle: "orange" }).drawHex(hex)
+        }
+      }
+    }
   }
   handleMouseDown(event) {
+    const selectedTool = this.selectedTool;
+    if (selectedTool[0] == "bg") {
+      const hex = this.getBoundingHexOfEvent(event)
+      if (hex) {
+        this.setState({ dragging: true })
+        this.assignColorToHex(hex, selectedTool[1])
+      }
+    }
   }
   handleMouseUp(event) {
+    this.setState({ dragging: false })
+  }
+  get selectedTool() {
+    const toolboxState = this.props.toolboxState;
+    if (toolboxState && toolboxState.selectedTool) {
+      return toolboxState.selectedTool.split(":")
+    }
+    return [""]
+  }
+  getBoundingHexOfEvent(event) {
+    return new HexGridRenderer(this.refs.gestureCanvas).getBoundingHex(Map.eventPoint(event))
+  }
+  clearAllFeedback() {
+    new HexGridRenderer(this.refs.feedbackCanvas).clear()
+  }
+  assignColorToHex(hex, color) {
+    new HexGridRenderer(this.refs.backgroundCanvas, { fillStyle: color }).drawHex(hex)
   }
   static eventPoint(event) {
     var rect = event.target.getBoundingClientRect();

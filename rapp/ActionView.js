@@ -17,7 +17,7 @@ export class ActionView extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      mapToolboxState: null,
+      mapToolboxState: MapToolbox.defaultState(),
       timeCardShown: false,
       meleeCardShown: false,
       locationCardShown: false
@@ -41,11 +41,13 @@ export class ActionView extends React.Component {
           </div>
           <MapToolbox onChange={(event) => this.handleMapToolboxChange(event)}/>
         </div>
-        <Map/>
+        <Map toolboxState={this.state.mapToolboxState}/>
       </div>
     )
   }
-  handleMapToolboxChange(event) {
+  handleMapToolboxChange(newState) {
+    console.log(newState)
+    this.setState({ mapToolboxState: newState })
   }
   renderMeleeTab(m) {
     return (

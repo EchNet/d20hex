@@ -31,11 +31,11 @@ function describeHexagon(cx, cy, radius, callback) {
 }
 
 export class HexGridRenderer {
-  constructor(canvas, options) {
+  constructor(canvas, options = null) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d");
     this.options = Object.assign({}, {
-      radius: 36,
+      radius: 28,
       strokeStyle: "rgb(200,200,200)"
     }, options);
   }
@@ -84,12 +84,10 @@ export class HexGridRenderer {
         cy0 -= unitDistance;
       }
     }
-
     context.stroke();
   }
-  drawBoundingHex(point) {
+  getBoundingHex(point) {
     // TODO: optimize.
-    console.log("drawBoundingHex", point)
 
     // Radius is the distance between adjacent vertices or between the center and a vertex.
     const radius = this.options.radius;
@@ -100,7 +98,6 @@ export class HexGridRenderer {
     // Fill the whole canvas.
     const width = this.canvas.width;
     const height = this.canvas.height;
-
 
     // Start at the lower left corner and work up toward the upper left corner, then the
     // upper right.  Draw stripes that originate at the edge and proceed 30 degrees downward
@@ -126,16 +123,21 @@ export class HexGridRenderer {
         cy0 -= unitDistance;
       }
     }
-    if (closest) {
-      console.log("CLOSEST", closest)
+    return closest;
+  }
+  drawHex(hex) {
+    if (hex) {
       const context = this.context;
-      context.beginPath();
-      context.strokeStyle = this.options.hoverStrokeStyle;
+      context.strokeStyle = this.options.strokeStyle;
       context.lineWidth = 1;
-      describeHexagon(closest.cx, closest.cy, radius, (x, y, index) => {
-        console.log("DRAW IT", x, y, index)
+      context.beginPath();
+      describeHexagon(hex.cx, hex.cy, this.options.radius, (x, y, index) => {
         context[index == 0 ? "moveTo" : "lineTo"](x, y);
       })
+      if (this.options.fillStyle) {
+        context.fillStyle = this.options.fillStyle;
+        context.fill();
+      }
       context.stroke();
     }
   }

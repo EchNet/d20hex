@@ -4,11 +4,14 @@ import { connect } from 'react-redux';
 import "./MapToolbox.css"
 
 export class MapToolbox extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {
+  static defaultState() {
+    return {
       selectedTool: "grabber"
     }
+  }
+  constructor(props) {
+    super(props)
+    this.state = MapToolbox.defaultState()
   }
   render() {
     return (
@@ -20,28 +23,21 @@ export class MapToolbox extends React.Component {
             <i className="material-icons">touch_app</i>
           </div>
           <hr></hr>
-          <div className={this.classifyTool("bg", "#000000")}
-              onClick={(event) => this.handleToolClick(event)}
-              style={{ backgroundColor: "#000000" }}
-              data-tool="bg:#000000"/>
-          <div className={this.classifyTool("bg", "#880000")}
-              onClick={(event) => this.handleToolClick(event)}
-              style={{ backgroundColor: "#880000" }}
-              data-tool="bg:#880000"/>
-          <div className={this.classifyTool("bg", "#008800")}
-              onClick={(event) => this.handleToolClick(event)}
-              style={{ backgroundColor: "#008800" }}
-              data-tool="bg:#008800"/>
-          <div className={this.classifyTool("bg", "#000088")}
-              onClick={(event) => this.handleToolClick(event)}
-              style={{ backgroundColor: "#000088" }}
-              data-tool="bg:#000088"/>
-          <div className={this.classifyTool("bg", "white")}
-              onClick={(event) => this.handleToolClick(event)}
-              style={{ backgroundColor: "white" }}
-              data-tool="bg:white"/>
+          { this.renderBgTool("#777777") }
+          { this.renderBgTool("#bda878") }
+          { this.renderBgTool("#449944") }
+          { this.renderBgTool("#7686ee") }
+          { this.renderBgTool("white") }
         </form>
       </div>
+    )
+  }
+  renderBgTool(color) {
+    return (
+      <div className={this.classifyTool("bg", color)}
+          onClick={(event) => this.handleToolClick(event)}
+          style={{ backgroundColor: color }}
+          data-tool={`bg:${color}`}/>
     )
   }
   classifyTool(name1, name2 = null) {
@@ -56,7 +52,14 @@ export class MapToolbox extends React.Component {
     return className;
   }
   handleToolClick(event) {
-    this.setState({ "selectedTool": event.currentTarget.getAttribute("data-tool") })
+    const newSelectedTool = event.currentTarget.getAttribute("data-tool")
+    const onChange = this.props.onChange;
+    this.setState((oldState) => {
+      if (newSelectedTool != oldState.selectedTool) {
+        onChange && this.props.onChange({ selectedTool: newSelectedTool })
+        return({ selectedTool: newSelectedTool })
+      }
+    })
   }
 }
 const mapState = (state) => {
