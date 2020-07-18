@@ -9,4 +9,5 @@ urlpatterns = [
     url(r"^campaign/(?P<campaign_id>[0-9]+)/action/?$", views.CampaignActionView.as_view()),
     url(r"^campaign/(?P<campaign_id>[0-9]+)/characters/?$",
         views.CampaignCharactersView.as_view()),
+    url(r"^campaign/(?P<campaign_id>[0-9]+)/map/?$", views.CampaignMapView.as_view()),
 ]

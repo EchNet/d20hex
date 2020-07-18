@@ -33,8 +33,24 @@ export class HexGridRenderer {
     // Draw the entire grid in a single stroke.
     const context = this.context;
     context.beginPath();
-    context.strokeStyle = this.options.strokeStyle;
     context.lineWidth = 1;
+    context.strokeStyle = this.options.strokeStyle;
+    if (this.options.bgMap) {
+      this.traverseGrid((hex) => {
+        let bgValue = this.options.bgMap.getBgValue(hex.row, hex.col)
+        if (bgValue) {
+          this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
+            context.lineWidth = 1;
+            context.beginPath();
+            this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
+              context[index == 0 ? "moveTo" : "lineTo"](x, y);
+            })
+            context.fillStyle = bgValue;
+            context.fill();
+          })
+        }
+      })
+    }
     this.traverseGrid((hex) => {
       this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
         // Don't retrace lines.
@@ -77,6 +93,8 @@ export class HexGridRenderer {
 
     // Unit distance is the distance between corresponding points of any two adjacent hexes.
     const unitDistance = radius * SQRT3;
+    const unitDistanceX = unitDistance * COSDEG30;
+    const unitDistanceY = unitDistance * SINDEG30;
 
     // Fill the whole canvas.
     const width = this.canvas.width;
@@ -85,11 +103,11 @@ export class HexGridRenderer {
     // Start at the lower left corner and work up toward the upper left corner, then the
     // upper right.  Draw stripes that originate at the edge and proceed 30 degrees downward
     // and to the right.
-    var closest = null;
-    var row0 = Math.floor(height / unitDistance) + 1;
-    var col0 = 0;
-    var cx0 = 0;
-    var cy0 = row0 * unitDistance;
+    let closest = null;
+    let row0 = Math.floor(height / unitDistance) + 1;
+    let col0 = 0;
+    let cx0 = 0;
+    let cy0 = row0 * unitDistance;
     for (let stripeCount = 0; cx0 < width + radius; ++stripeCount) {
       let cx = cx0;
       let cy = cy0;
@@ -97,8 +115,8 @@ export class HexGridRenderer {
       let col = col0;
       for (let cellCount = 0; cx < width + radius && cy < height + unitDistance / 2; ++cellCount) {
         callback({ cx, cy, stripeCount, cellCount, row, col })
-        cx += unitDistance * COSDEG30;
-        cy += unitDistance * SINDEG30;
+        cx += unitDistanceX;
+        cy += unitDistanceY;
         if (col % 2 == 0) { row += 1 }
         col += 1;
       }

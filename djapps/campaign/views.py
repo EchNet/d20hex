@@ -19,6 +19,7 @@ from .serializers import (
     CampaignSerializer,
     NewCampaignSerializer,
     PlayerCampaignMembershipSerializer,
+    TempDocSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -119,3 +120,12 @@ class CampaignActionView(views.APIView):
     ticket = TokenCodec().encode(json.dumps([campaign.id, expiration]))
     response_data = {"ticket": ticket}
     return Response(response_data)
+
+
+class CampaignMapView(generics.ListAPIView):
+  serializer_class = TempDocSerializer
+
+  def get_queryset(self):
+    campaign_id = self.kwargs.get("campaign_id")
+    campaign = get_object_or_404(Campaign.objects.all(), id=campaign_id)
+    return campaign.documents.all()

@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
 from player.serializers import PlayerSerializer
+from tempdoc.models import TempDoc
+
 from .models import (Campaign, PlayerCampaignMembership)
 
 
@@ -34,3 +36,12 @@ class PlayerCampaignMembershipSerializer(serializers.ModelSerializer):
     fields = ("player_id", "campaign", "can_manage")
 
   campaign = CampaignSerializer(read_only=True, many=False)
+
+
+class TempDocSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = TempDoc
+    fields = (
+        "key",
+        "data",
+    )

@@ -86,12 +86,15 @@ class ApiConnector {
     const data = Object.assign({}, campaign, { name: campaignName })
     return this._doPut(`/api/1.0/campaign/${campaign.id}`, data)
   }
+  getMapForCampaign(campaign) {
+    return this._doGet(`/api/1.0/campaign/${campaign.id}/map`)
+  }
 }
 
 class EchoConnector extends EventEmitter {
   static getEndpoint() {
     const scheme = window.location.protocol == "https:" ? "wss" : "ws";
-    return scheme + "://" + window.location.host + "/ws/echo/";
+    return scheme + "://" + window.location.host + "/ws/map/";
   }
   open() {
     if (this.client && this.client.readyState == WebSocket.OPEN) {
@@ -111,15 +114,18 @@ class EchoConnector extends EventEmitter {
         }
         this.client.onmessage = (event) => {
           const data = JSON.parse(event.data)
-          this.emit("message", data.message)
+          if (data.type == "bgUpdate") {
+            this.emit("bgUpdate", data)
+          }
         }
       })
     }
     return this.openPromise;
   }
-  send(message) {
-    this.open().then((client) => {
-      client.send(JSON.stringify({ type: "message", message }))
+  selectCampaign(campaignId) {
+    // TODO: authorization
+    this.open(campaignId).then((client) => {
+      client.send(JSON.stringify({ type: "selectCampaign", campaignId }))
     })
   }
 }

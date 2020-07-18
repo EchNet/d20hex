@@ -23,9 +23,6 @@ export class ActionView extends React.Component {
       locationCardShown: false
     }
   }
-  componentDidMount() {
-    this.props.dispatch({ type: actions.WANT_CHARACTERS })
-  }
   render() {
     return (
       <div className="ActionView">

@@ -1,6 +1,7 @@
 import * as React from "react"
 import { connect } from 'react-redux';
 
+import actions from "./actions"
 import HexGridRenderer from "./HexGridRenderer"
 import "./Map.css"
 
@@ -11,18 +12,28 @@ export class Map extends React.Component {
     this.state = {}
     this.dragging = false;
     this.hoverHex = null;
-    this.boundUpdateCanvas = this.updateCanvas.bind(this)
+    this.boundResizeHandler = this.handleResize.bind(this)
   }
   componentDidMount() {
-    this.updateCanvas()
-    window.addEventListener("resize", this.boundUpdateCanvas)
+    this.props.dispatch({ type: actions.WANT_MAP })
+    this.updateCanvasIfMapReady()
+    window.addEventListener("resize", this.boundResizeHandler)
+  }
+  componentDidUpdate() {
+    this.updateCanvasIfMapReady()
   }
   componentWillUnmount() {
-    window.addEventListener("resize", this.boundUpdateCanvas)
+    window.addEventListener("resize", this.boundResizeHandler)
   }
-  updateCanvas() {
-    this.resizeCanvas()
-    this.scheduleCanvasRedraw()
+  updateCanvasIfMapReady() {
+    if (this.props.map && !this.drawn) {
+      this.scheduleCanvasRedraw()
+      this.drawn = true;
+    }
+  }
+  handleResize() {
+    this.drawn = false;
+    this.updateCanvasIfMapReady()
   }
   resizeCanvas() {
     [
@@ -41,11 +52,14 @@ export class Map extends React.Component {
       clearTimeout(this.redrawTimeout);
     }
     this.redrawTimeout = setTimeout(() => {
+      this.resizeCanvas()
       self.redrawCanvas()
     }, 400)
   }
   redrawCanvas() {
-    new HexGridRenderer(this.refs.backgroundCanvas).clear().drawGrid()
+    new HexGridRenderer(this.refs.backgroundCanvas, {
+      bgMap: new BgMap(this.props.map.bg)
+    }).drawGrid()
   }
   render() {
     return (
@@ -124,7 +138,7 @@ export class Map extends React.Component {
     if (selectedTool[0] == "bg") {
       const hex = this.getBoundingHexOfEvent(event)
       if (hex) {
-        this.dragging = false;
+        this.dragging = true;
         this.assignColorToHex(hex, selectedTool[1])
       }
     }
@@ -147,12 +161,22 @@ export class Map extends React.Component {
   }
   assignColorToHex(hex, color) {
     new HexGridRenderer(this.refs.backgroundCanvas, { fillStyle: color }).drawHex(hex)
+    this.props.dispatch({ type: actions.SET_BACKGROUND, hex, value: color })
   }
   static eventPoint(event) {
     var rect = event.target.getBoundingClientRect();
     var x = event.clientX - rect.left;
     var y = event.clientY - rect.top;
     return { x, y }
+  }
+}
+class BgMap {
+  constructor(data) {
+    this.data = data || {};
+  }
+  getBgValue(row, col) {
+    const key = `${row}:${col}`
+    return this.data[key]
   }
 }
 function hexesEqual(h1, h2) {

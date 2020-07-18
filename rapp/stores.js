@@ -66,6 +66,12 @@ function stateReducer(state = 0, action) {
     return updateCampaign(state, action.props)
   case actions.CAMPAIGN_UPDATED:
     return campaignUpdated(state, action.data)
+  case actions.WANT_MAP:
+    return wantMap(state)
+  case actions.MAP_KNOWN:
+    return mapKnown(state, action.data)
+  case actions.SET_BACKGROUND:
+    return setBackground(state, action.hex, action.value)
   }
   if (DEBUG) console.log("warning: action unhandled")
   return state || {};
@@ -99,7 +105,9 @@ function selectCampaign(state, campaign) {
   const currentId = state.campaign ? state.campaign.id : null;
   const newId = campaign ? campaign.id : null;
   if (currentId !== newId) {
-    state = updateState(state, { campaign, characters: null, charactersKnown: false })
+    state = updateState(state, {
+      campaign, characters: null, charactersKnown: false, mapKnown: false
+    })
   }
   return state;
 }
@@ -247,6 +255,36 @@ function updateCampaign(state, props) {
 function campaignUpdated(state, campaign) {
   state = updateCampaigns(state, [ campaign ])
   return unshowApiBlock(state)
+}
+
+//=============================================
+
+function wantMap(state) {
+  if (!state.mapKnown) {
+    handleApiCall(apiConnector.getMapForCampaign(state.campaign), actions.MAP_KNOWN)
+  }
+  return wantCampaignTime(state)
+}
+
+function mapKnown(state, map) {
+  map = transformMapArrayToHash(map)
+  return updateState(state, { map, mapKnown: true })
+}
+
+function transformMapArrayToHash(array) {
+  let hash = {}
+  array.forEach((ele) => { hash[ele.key] = ele.data })
+  return hash;
+}
+
+function setBackground(state, hex, value) {
+  if (state.map) {
+    if (!state.map.bg) {
+      state.map.bg = {}
+    }
+    state.map.bg[`${hex.row}:${hex.col}`] = value;
+  }
+  return state;
 }
 
 //=============================================
