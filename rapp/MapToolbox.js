@@ -22,6 +22,11 @@ export class MapToolbox extends React.Component {
               data-tool="grabber">
             <i className="material-icons">touch_app</i>
           </div>
+          <div className={this.classifyTool("info")}
+              onClick={(event) => this.handleToolClick(event)}
+              data-tool="info">
+            <i className="material-icons">help_outline</i>
+          </div>
           <hr></hr>
           { this.renderBgTool("#777777") }
           { this.renderBgTool("#bda878") }

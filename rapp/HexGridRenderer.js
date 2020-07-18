@@ -16,20 +16,6 @@ function dist(x0, y0, x1, y1) {
   return Math.sqrt(sq(y0 - y1) + sq(x1 - x0));
 }
 
-// Visit the vertices of the hexagon with center at (cx,cy).
-function describeHexagon(cx, cy, radius, callback) {
-  var x = cx, y = cy;  // Start at the center.
-  var angle = 0;       // Pointing at the vertex to the right.
-  for (var i = 0; i <= 6; ++i) {
-    x += Math.cos(angle) * radius;
-    y += Math.sin(angle) * radius;
-    callback(x, y, i);
-    // The first iteration is special because we started at the center point.
-    // The remaining iterations move from one vertex to another.
-    angle += i == 0 ? DEG120 : DEG60; 
-  }
-}
-
 export class HexGridRenderer {
   constructor(canvas, options = null) {
     this.canvas = canvas;
@@ -44,51 +30,48 @@ export class HexGridRenderer {
     return this;
   }
   drawGrid() {
-    // Radius is the distance between adjacent vertices or between the center and a vertex.
-    const radius = this.options.radius;
-
-    // Unit distance is the distance between corresponding points of any two adjacent hexes.
-    const unitDistance = radius * SQRT3;
-
-    // Fill the whole canvas.
-    const width = this.canvas.width;
-    const height = this.canvas.height;
-
     // Draw the entire grid in a single stroke.
     const context = this.context;
     context.beginPath();
     context.strokeStyle = this.options.strokeStyle;
     context.lineWidth = 1;
-
-    // Start at the lower left corner and work up toward the upper left corner, then the
-    // upper right.  Draw stripes that originate at the edge and proceed 30 degrees downward
-    // and to the right.
-    var cx0 = 0;
-    var cy0 = (Math.floor(height / unitDistance) + 1) * unitDistance;
-    for (let stripeCount = 0; cx0 < width + radius; ++stripeCount) {
-      let cx = cx0;
-      let cy = cy0;
-      for (let cellCount = 0; cx < width + radius && cy < height + unitDistance / 2; ++cellCount) {
-        describeHexagon(cx, cy, radius, (x, y, index) => {
-          // Don't retrace lines.
-          let noLine = (index == 0) || (stripeCount && (index == 2 || index == 3)) || (cellCount && index == 4);
-          context[noLine ? "moveTo" : "lineTo"](x, y);
-        })
-        cx += unitDistance * COSDEG30;
-        cy += unitDistance * SINDEG30;
-      }
-      if (cy0 < 0.0001 /* == 0 */) {
-        cx0 += radius * 3;
-      }
-      else {
-        cy0 -= unitDistance;
-      }
-    }
+    this.traverseGrid((hex) => {
+      this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
+        // Don't retrace lines.
+        let noLine = (index == 0) || (hex.stripeCount && (index == 2 || index == 3)) || (hex.cellCount && index == 4);
+        context[noLine ? "moveTo" : "lineTo"](x, y);
+      })
+    })
     context.stroke();
   }
   getBoundingHex(point) {
     // TODO: optimize.
-
+    var closest = null;
+    this.traverseGrid((hex) => {
+      const distance = dist(hex.cx, hex.cy, point.x, point.y)
+      if (!closest || distance < closest.distance) {
+        closest = Object.assign(hex, { distance })
+      }
+    })
+    return closest;
+  }
+  drawHex(hex) {
+    if (hex) {
+      const context = this.context;
+      context.strokeStyle = this.options.strokeStyle;
+      context.lineWidth = 1;
+      context.beginPath();
+      this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
+        context[index == 0 ? "moveTo" : "lineTo"](x, y);
+      })
+      if (this.options.fillStyle) {
+        context.fillStyle = this.options.fillStyle;
+        context.fill();
+      }
+      context.stroke();
+    }
+  }
+  traverseGrid(callback) {
     // Radius is the distance between adjacent vertices or between the center and a vertex.
     const radius = this.options.radius;
 
@@ -103,42 +86,45 @@ export class HexGridRenderer {
     // upper right.  Draw stripes that originate at the edge and proceed 30 degrees downward
     // and to the right.
     var closest = null;
+    var row0 = Math.floor(height / unitDistance) + 1;
+    var col0 = 0;
     var cx0 = 0;
-    var cy0 = (Math.floor(height / unitDistance) + 1) * unitDistance;
+    var cy0 = row0 * unitDistance;
     for (let stripeCount = 0; cx0 < width + radius; ++stripeCount) {
       let cx = cx0;
       let cy = cy0;
+      let row = row0;
+      let col = col0;
       for (let cellCount = 0; cx < width + radius && cy < height + unitDistance / 2; ++cellCount) {
-        const distance = dist(cx, cy, point.x, point.y)
-        if (!closest || distance < closest.distance) {
-          closest = { distance, cx, cy }
-        }
+        callback({ cx, cy, stripeCount, cellCount, row, col })
         cx += unitDistance * COSDEG30;
         cy += unitDistance * SINDEG30;
+        if (col % 2 == 0) { row += 1 }
+        col += 1;
       }
-      if (cy0 < 0.0001 /* == 0 */) {
-        cx0 += radius * 3;
+      if (cy0 > 0.0001 /* != 0 */) {
+        // Follow the left edge bottom to top.
+        cy0 -= unitDistance;
+        row0 -= 1;
       }
       else {
-        cy0 -= unitDistance;
+        // Follow the top edge left to right.
+        cx0 += radius * 3;
+        col0 += 2;
       }
     }
-    return closest;
   }
-  drawHex(hex) {
-    if (hex) {
-      const context = this.context;
-      context.strokeStyle = this.options.strokeStyle;
-      context.lineWidth = 1;
-      context.beginPath();
-      describeHexagon(hex.cx, hex.cy, this.options.radius, (x, y, index) => {
-        context[index == 0 ? "moveTo" : "lineTo"](x, y);
-      })
-      if (this.options.fillStyle) {
-        context.fillStyle = this.options.fillStyle;
-        context.fill();
-      }
-      context.stroke();
+  // Visit the vertices of the hexagon with center at (cx,cy).
+  describeHexagon(cx, cy, callback) {
+    var x = cx, y = cy;  // Start at the center.
+    var angle = 0;       // Pointing at the vertex to the right.
+    for (var i = 0; i <= 6; ++i) {
+      x += Math.cos(angle) * this.options.radius;
+      y += Math.sin(angle) * this.options.radius;
+      callback(x, y, i);
+      // The first iteration is special because we started at the center point.
+      // The remaining iterations move from one vertex to another.
+      angle += i == 0 ? DEG120 : DEG60; 
     }
   }
 }

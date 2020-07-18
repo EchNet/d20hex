@@ -14,12 +14,16 @@
   border-radius: 5px;
   margin: 4px auto;
   border: 2px solid rgba(0,0,0,0);
+  text-align: center;
 }
-.MapToolbox .tool:hover {
-  border: 2px solid rgba(128,0,0,0.5);
+.MapToolbox .tool:hover, .MapToolbox .tool.white:hover {
+  border: 2px ridge red;
 }
-.MapToolbox .tool.selected:not(:hover) {
+.MapToolbox .tool.selected {
   border: 2px ridge red; 
+}
+.MapToolbox .tool.white:not(.selected):not(:hover) {
+  border: 2px solid gray; 
 }
 .MapToolbox .grabber {
   width: 35px;
@@ -31,12 +35,6 @@
 }
 .MapToolbox .tool i.material-icons {
   font-size: 32px;
-}
-.MapToolbox .tool.white:not(.selected) {
-  border: 2px solid gray; 
-}
-.MapToolbox .tool.selected {
-  border: 2px ridge black; 
 }
 .MapToolbox hr {
   margin-top: 5px;
