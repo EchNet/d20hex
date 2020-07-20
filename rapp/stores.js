@@ -1,5 +1,5 @@
 import { createStore } from "redux"
-import { apiConnector } from "./connectors"
+import { apiConnector, echoConnector } from "./connectors"
 import actions from "./actions"
 import config from "./config"
 
@@ -71,7 +71,7 @@ function stateReducer(state = 0, action) {
   case actions.MAP_KNOWN:
     return mapKnown(state, action.data)
   case actions.SET_BACKGROUND:
-    return setBackground(state, action.hex, action.value)
+    return setBackground(state, action.props)
   }
   if (DEBUG) console.log("warning: action unhandled")
   return state || {};
@@ -80,6 +80,13 @@ function stateReducer(state = 0, action) {
 export const store = createStore(stateReducer)
 store.subscribe(() => DEBUG && console.log("NEW STATE", store.getState()))
 store.dispatch({ type: actions.START_APP })
+
+echoConnector.on("app.bg", (props) => {
+  store.dispatch({ type: actions.SET_BACKGROUND, props: {
+    key: props.key,
+    value: props.value
+  }})
+})
 
 //=============================================
 // STATE TRANSITIONS
@@ -277,12 +284,20 @@ function transformMapArrayToHash(array) {
   return hash;
 }
 
-function setBackground(state, hex, value) {
+function setBackground(state, props) {
+  const key = props.key;
+  const value = props.value;
+  const author = props.author;
   if (state.map) {
     if (!state.map.bg) {
       state.map.bg = {}
     }
-    state.map.bg[`${hex.row}:${hex.col}`] = value;
+    if (state.map.bg[key] != value) {
+      state.map.bg[key] = value;
+      if (author) {
+        echoConnector.setBackground(state.campaign.id, key, value);
+      }
+    }
   }
   return state;
 }

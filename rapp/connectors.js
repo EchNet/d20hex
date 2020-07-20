@@ -2,6 +2,9 @@ import axios from "axios"
 import ImportedCookies from "cookies-js"
 import { w3cwebsocket as WebSocket } from "websocket"
 import EventEmitter from "eventemitter3"
+import config from "./config"
+
+let DEBUG = config("DEBUG");
 
 function toQueryString(params) {
   return Object.keys(params).map(
@@ -106,26 +109,25 @@ class EchoConnector extends EventEmitter {
         this.client = new WebSocket(endpoint)
         this.client.onopen = () => {
           this.openPromise = null;
-          this.emit("connect")
+          this.emit("socket.connect")
           resolve(this.client)
         }
         this.client.onclose = () => {
-          this.emit("disconnect")
+          this.emit("socket.disconnect")
         }
         this.client.onmessage = (event) => {
+          if (DEBUG) console.log(event)
           const data = JSON.parse(event.data)
-          if (data.type == "bgUpdate") {
-            this.emit("bgUpdate", data)
-          }
+          this.emit(`app.${data.type}`, data)
         }
       })
     }
     return this.openPromise;
   }
-  selectCampaign(campaignId) {
+  setBackground(campaignId, key, value) {
     // TODO: authorization
     this.open(campaignId).then((client) => {
-      client.send(JSON.stringify({ type: "selectCampaign", campaignId }))
+      client.send(JSON.stringify({ type: "bg", campaignId, key, value }))
     })
   }
 }

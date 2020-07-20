@@ -161,7 +161,9 @@ export class Map extends React.Component {
   }
   assignColorToHex(hex, color) {
     new HexGridRenderer(this.refs.backgroundCanvas, { fillStyle: color }).drawHex(hex)
-    this.props.dispatch({ type: actions.SET_BACKGROUND, hex, value: color })
+    this.props.dispatch({ type: actions.SET_BACKGROUND, props: {
+      key: `${hex.row}:${hex.col}`, author: true, value: color
+    }})
   }
   static eventPoint(event) {
     var rect = event.target.getBoundingClientRect();
