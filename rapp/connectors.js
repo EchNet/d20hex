@@ -100,6 +100,7 @@ class EchoConnector extends EventEmitter {
     return scheme + "://" + window.location.host + "/ws/map/";
   }
   open() {
+    // TODO: authorization
     if (this.client && this.client.readyState == WebSocket.OPEN) {
       return Promise.resolve(this.client)
     }
@@ -124,10 +125,9 @@ class EchoConnector extends EventEmitter {
     }
     return this.openPromise;
   }
-  setBackground(campaignId, key, value) {
-    // TODO: authorization
-    this.open(campaignId).then((client) => {
-      client.send(JSON.stringify({ type: "bg", campaignId, key, value }))
+  broadcast(event) {
+    this.open().then((client) => {
+      client.send(JSON.stringify(event))
     })
   }
 }

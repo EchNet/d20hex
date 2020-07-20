@@ -43,7 +43,6 @@ export class ActionView extends React.Component {
     )
   }
   handleMapToolboxChange(newState) {
-    console.log(newState)
     this.setState({ mapToolboxState: newState })
   }
   renderMeleeTab(m) {

@@ -1,4 +1,6 @@
 import { createStore } from "redux"
+import EventEmitter from "eventemitter3"
+
 import { apiConnector, echoConnector } from "./connectors"
 import actions from "./actions"
 import config from "./config"
@@ -77,15 +79,13 @@ function stateReducer(state = 0, action) {
   return state || {};
 }
 
+export const mapEventEmitter = new EventEmitter()
 export const store = createStore(stateReducer)
 store.subscribe(() => DEBUG && console.log("NEW STATE", store.getState()))
 store.dispatch({ type: actions.START_APP })
 
 echoConnector.on("app.bg", (props) => {
-  store.dispatch({ type: actions.SET_BACKGROUND, props: {
-    key: props.key,
-    value: props.value
-  }})
+  store.dispatch({ type: actions.SET_BACKGROUND, props });
 })
 
 //=============================================
@@ -275,6 +275,7 @@ function wantMap(state) {
 
 function mapKnown(state, map) {
   map = transformMapArrayToHash(map)
+  map.bg = new BgMap(map.bg)
   return updateState(state, { map, mapKnown: true })
 }
 
@@ -285,18 +286,17 @@ function transformMapArrayToHash(array) {
 }
 
 function setBackground(state, props) {
-  const key = props.key;
-  const value = props.value;
-  const author = props.author;
-  if (state.map) {
-    if (!state.map.bg) {
-      state.map.bg = {}
-    }
-    if (state.map.bg[key] != value) {
-      state.map.bg[key] = value;
-      if (author) {
-        echoConnector.setBackground(state.campaign.id, key, value);
-      }
+  if (!state.map) return;
+  if (state.map.bg.setBgValue(props.hex.row, props.hex.col, props.value)) {
+    console.log('bg update going out', props.hex)
+    mapEventEmitter.emit("bgUpdate", props.hex)
+    if (props.author) {
+      echoConnector.broadcast({
+        type: "bg",
+        campaignId: state.campaign.id,
+        hex: ((hex) => ({ row: hex.row, col: hex.col }))(props.hex),
+        value: props.value
+      })
     }
   }
   return state;
@@ -304,6 +304,24 @@ function setBackground(state, props) {
 
 //=============================================
 // HELPERS
+
+class BgMap {
+  constructor(data) {
+    this.data = data || {};
+  }
+  getBgValue(row, col) {
+    const key = `${row}:${col}`
+    return this.data[key]
+  }
+  setBgValue(row, col, value) {
+    const key = `${row}:${col}`
+    if (this.data[key] != value) {
+      this.data[key] = value;
+      return true;
+    }
+    return false;
+  }
+}
 
 function updatePlayers(state, datalist, complete = false) {
   state = updateDictionary(state, "players", datalist, complete);

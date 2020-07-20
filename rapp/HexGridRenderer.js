@@ -22,6 +22,7 @@ export class HexGridRenderer {
     this.context = canvas.getContext("2d");
     this.options = Object.assign({}, {
       radius: 28,
+      lineWidth: 1,
       strokeStyle: "rgb(200,200,200)"
     }, options);
   }
@@ -32,15 +33,13 @@ export class HexGridRenderer {
   drawGrid() {
     // Draw the entire grid in a single stroke.
     const context = this.context;
-    context.beginPath();
-    context.lineWidth = 1;
+    context.lineWidth = this.options.lineWidth;
     context.strokeStyle = this.options.strokeStyle;
     if (this.options.bgMap) {
       this.traverseGrid((hex) => {
         let bgValue = this.options.bgMap.getBgValue(hex.row, hex.col)
         if (bgValue) {
           this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
-            context.lineWidth = 1;
             context.beginPath();
             this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
               context[index == 0 ? "moveTo" : "lineTo"](x, y);
@@ -51,6 +50,7 @@ export class HexGridRenderer {
         }
       })
     }
+    context.beginPath();
     this.traverseGrid((hex) => {
       this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
         // Don't retrace lines.
@@ -75,14 +75,18 @@ export class HexGridRenderer {
     if (hex) {
       const context = this.context;
       context.strokeStyle = this.options.strokeStyle;
-      context.lineWidth = 1;
+      context.lineWidth = this.options.lineWidth;
       context.beginPath();
+      this.locateHex(hex)
       this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
         context[index == 0 ? "moveTo" : "lineTo"](x, y);
       })
-      if (this.options.fillStyle) {
-        context.fillStyle = this.options.fillStyle;
-        context.fill();
+      if (this.options.bgMap) {
+        const bgValue = this.options.bgMap.getBgValue(hex.row, hex.col)
+        if (bgValue) {
+          context.fillStyle = bgValue;
+          context.fill();
+        }
       }
       context.stroke();
     }
@@ -144,6 +148,15 @@ export class HexGridRenderer {
       // The remaining iterations move from one vertex to another.
       angle += i == 0 ? DEG120 : DEG60; 
     }
+  }
+  // Map (row,col) to (cx,cy).
+  locateHex(hex) {
+    const radius = this.options.radius;
+    const unitDistance = radius * SQRT3;
+    let cx = hex.col * (radius * 3 / 2)
+    let cy = (hex.row * unitDistance) - (hex.col % 2) * (unitDistance * SINDEG30)
+    hex.cx = cx;
+    hex.cy = cy;
   }
 }
 

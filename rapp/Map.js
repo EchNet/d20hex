@@ -2,6 +2,7 @@ import * as React from "react"
 import { connect } from 'react-redux';
 
 import actions from "./actions"
+import { mapEventEmitter } from "./stores"
 import HexGridRenderer from "./HexGridRenderer"
 import "./Map.css"
 
@@ -10,63 +11,70 @@ export class Map extends React.Component {
   constructor(props) {
     super(props)
     this.state = {}
+    this.canvasDirty = true;
     this.dragging = false;
     this.hoverHex = null;
-    this.boundResizeHandler = this.handleResize.bind(this)
+    this.boundWindowResizeHandler = this.handleWindowResize.bind(this)
+    this.boundBackgroundRedrawHandler = this.handleBackgroundRedraw.bind(this)
   }
   componentDidMount() {
+    // Trigger loading of map data as needed.
     this.props.dispatch({ type: actions.WANT_MAP })
-    this.updateCanvasIfMapReady()
-    window.addEventListener("resize", this.boundResizeHandler)
+    this.resizeCanvas();
+    if (this.props.map) {
+      this.renderBackground();
+    }
+    window.addEventListener("resize", this.boundWindowResizeHandler)
+    mapEventEmitter.on("bgUpdate", this.boundBackgroundRedrawHandler)
   }
   componentDidUpdate() {
-    this.updateCanvasIfMapReady()
+    this.checkForCanvasUpdate()
   }
   componentWillUnmount() {
-    window.addEventListener("resize", this.boundResizeHandler)
+    window.addEventListener("resize", this.boundWindowResizeHandler)
+    mapEventEmitter.off("bgUpdate", this.boundBackgroundRedrawHandler)
   }
-  updateCanvasIfMapReady() {
-    if (this.props.map && !this.drawn) {
-      this.scheduleCanvasRedraw()
-      this.drawn = true;
+  checkForCanvasUpdate() {
+    if (this.props.map && this.canvasDirty) {
+      this.renderBackground()
     }
   }
-  handleResize() {
-    this.drawn = false;
-    this.updateCanvasIfMapReady()
-  }
   resizeCanvas() {
+    // Maintain scale of all canvases as one, staying constant despite window resizes.
+    let resized = false;
     [
       this.refs.backgroundCanvas,
       this.refs.foregroundCanvas,
-      this.refs.feedbackCanvas,
       this.refs.gestureCanvas
     ].forEach((canvas) => {
-      canvas.height = canvas.clientHeight;
-      canvas.width = canvas.clientWidth;
+      if (canvas.height != canvas.clientHeight) {
+        canvas.height = canvas.clientHeight;
+        resized = true;
+      }
+      if (canvas.height != canvas.clientWidth) {
+        canvas.width = canvas.clientWidth;
+        resized = true;
+      }
     })
+    return resized;
   }
-  scheduleCanvasRedraw() {
-    const self = this
-    if (this.redrawTimeout) {
-      clearTimeout(this.redrawTimeout);
-    }
-    this.redrawTimeout = setTimeout(() => {
-      this.resizeCanvas()
-      self.redrawCanvas()
-    }, 400)
-  }
-  redrawCanvas() {
+  renderBackground() {
+    this.canvasDirty = false;
     new HexGridRenderer(this.refs.backgroundCanvas, {
-      bgMap: new BgMap(this.props.map.bg)
-    }).drawGrid()
+      bgMap: this.props.map.bg
+    }).clear().drawGrid()
+  }
+  renderOneBackgroundHex(hex) {
+    console.log('renderOneBackgroundHex', hex, this.props.map.bg.getBgValue(hex.row, hex.col))
+    new HexGridRenderer(this.refs.backgroundCanvas, {
+      bgMap: this.props.map.bg
+    }).drawHex(hex)
   }
   render() {
     return (
       <div className="Map">
         <canvas key="backgroundCanvas" ref="backgroundCanvas"></canvas>
         <canvas key="foregroundCanvas" ref="foregroundCanvas"></canvas>
-        <canvas key="feedbackCanvas" ref="feedbackCanvas"></canvas>
         <canvas key="gestureCanvas" ref="gestureCanvas"
           onMouseEnter={(event) => this.handleMouseEnter(event)}
           onMouseLeave={(event) => this.handleMouseLeave(event)}
@@ -95,6 +103,14 @@ export class Map extends React.Component {
       </div>
     )
   }
+  handleWindowResize() {
+    if (this.resizeCanvas()) {
+      this.renderBackground();
+    }
+  }
+  handleBackgroundRedraw(hex) {
+    this.renderOneBackgroundHex(hex)
+  }
   handleMouseEnter(event) {
     this.handleMouseMove(event)
   }
@@ -122,7 +138,7 @@ export class Map extends React.Component {
       break;
     case "grabber":
       if (hex) {
-        new HexGridRenderer(this.refs.feedbackCanvas, { strokeStyle: "orange" }).drawHex(hex)
+        new HexGridRenderer(this.refs.gestureCanvas, { strokeStyle: "orange" }).drawHex(hex)
       }
       break;
     case "info":
@@ -157,12 +173,11 @@ export class Map extends React.Component {
     return new HexGridRenderer(this.refs.gestureCanvas).getBoundingHex(Map.eventPoint(event))
   }
   clearAllFeedback() {
-    new HexGridRenderer(this.refs.feedbackCanvas).clear()
+    new HexGridRenderer(this.refs.gestureCanvas).clear()
   }
   assignColorToHex(hex, color) {
-    new HexGridRenderer(this.refs.backgroundCanvas, { fillStyle: color }).drawHex(hex)
     this.props.dispatch({ type: actions.SET_BACKGROUND, props: {
-      key: `${hex.row}:${hex.col}`, author: true, value: color
+      author: true, hex: hex, value: color
     }})
   }
   static eventPoint(event) {
@@ -170,15 +185,6 @@ export class Map extends React.Component {
     var x = event.clientX - rect.left;
     var y = event.clientY - rect.top;
     return { x, y }
-  }
-}
-class BgMap {
-  constructor(data) {
-    this.data = data || {};
-  }
-  getBgValue(row, col) {
-    const key = `${row}:${col}`
-    return this.data[key]
   }
 }
 function hexesEqual(h1, h2) {
