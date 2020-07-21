@@ -1,7 +1,10 @@
 import json
 import logging
 
+from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
+
+from tempdoc.models import MapElement
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +26,7 @@ class EchoConsumer(AsyncJsonWebsocketConsumer):
     # All messages from clients to server funnel through this method.
     # The framework parses the message as JSON prior to calling this method.
     # The structure of these messages is entirely up to the client.
+    # logger.info(f"receive_json {str(message)}")
     if message.get("type") == "bg":
       # Auto-enroll in the campaign channel.  TODO: authenticate.
       await self._listen_to_campaign(message.get("campaignId"))
@@ -31,6 +35,18 @@ class EchoConsumer(AsyncJsonWebsocketConsumer):
           "type": "campaign.echo",
           "message": message,
       })
+      # Update the database.
+      await self.update_or_create_map_element(
+          {
+              "campaign_id": self.campaign_id,
+              "sector": 0,
+              "layer": "bg",
+              "position": f'{message["hex"]["row"]}:{message["hex"]["col"]}',
+          }, message["value"])
+
+  @database_sync_to_async
+  def update_or_create_map_element(self, keys, value):
+    MapElement.objects.update_or_create(**keys, defaults={"value": value})
 
   async def disconnect(self, close_code):
     logger.info(f"disconnect {self.channel_name}")

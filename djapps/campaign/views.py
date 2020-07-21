@@ -128,4 +128,4 @@ class CampaignMapView(generics.ListAPIView):
   def get_queryset(self):
     campaign_id = self.kwargs.get("campaign_id")
     campaign = get_object_or_404(Campaign.objects.all(), id=campaign_id)
-    return campaign.documents.all()
+    return campaign.map_elements.all()

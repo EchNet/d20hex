@@ -1,10 +1,10 @@
 from django.contrib import admin
 
-from .models import TempDoc
+from .models import MapElement
 
 
-class TempDocAdmin(admin.ModelAdmin):
-  list_display = ("id", "campaign", "key")
+class MapElementAdmin(admin.ModelAdmin):
+  list_display = ("id", "campaign", "position", "value")
 
 
-admin.site.register(TempDoc, TempDocAdmin)
+admin.site.register(MapElement, MapElementAdmin)

@@ -273,16 +273,21 @@ function wantMap(state) {
   return wantCampaignTime(state)
 }
 
-function mapKnown(state, map) {
-  map = transformMapArrayToHash(map)
-  map.bg = new BgMap(map.bg)
+function mapKnown(state, mapData) {
+  const map = {
+    bg: extractBgMap(mapData)
+  }
   return updateState(state, { map, mapKnown: true })
 }
 
-function transformMapArrayToHash(array) {
-  let hash = {}
-  array.forEach((ele) => { hash[ele.key] = ele.data })
-  return hash;
+function extractBgMap(mapData) {
+  let bgHash = {}
+  mapData.forEach((ele) => {
+    if (ele.layer == "bg") {
+      bgHash[ele.position] = ele.value
+    }
+  })
+  return new BgMap(bgHash)
 }
 
 function setBackground(state, props) {

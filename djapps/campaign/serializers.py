@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from player.serializers import PlayerSerializer
-from tempdoc.models import TempDoc
+from tempdoc.models import MapElement
 
 from .models import (Campaign, PlayerCampaignMembership)
 
@@ -40,8 +40,11 @@ class PlayerCampaignMembershipSerializer(serializers.ModelSerializer):
 
 class TempDocSerializer(serializers.ModelSerializer):
   class Meta:
-    model = TempDoc
+    model = MapElement
     fields = (
-        "key",
-        "data",
+        "id",
+        "sector",
+        "layer",
+        "position",
+        "value",
     )
