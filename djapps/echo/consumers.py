@@ -27,9 +27,10 @@ class EchoConsumer(AsyncJsonWebsocketConsumer):
     # The framework parses the message as JSON prior to calling this method.
     # The structure of these messages is entirely up to the client.
     # logger.info(f"receive_json {str(message)}")
-    if message.get("type") == "bg":
-      # Auto-enroll in the campaign channel.  TODO: authenticate.
+    # If campaign is specified, enroll in the campaign channel.  TODO: authenticate.
+    if message.get("campaignId", None) is not None:
       await self._listen_to_campaign(message.get("campaignId"))
+    if message.get("type") == "bg":
       # Apparently, group_send does JSON serialization underneath the hood.
       await self.channel_layer.group_send(self.group_id, {
           "type": "campaign.echo",

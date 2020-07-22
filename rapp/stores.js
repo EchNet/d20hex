@@ -115,6 +115,10 @@ function selectCampaign(state, campaign) {
     state = updateState(state, {
       campaign, characters: null, charactersKnown: false, mapKnown: false
     })
+    echoConnector.broadcast({
+      type: "uc",
+      campaignId: campaign.id
+    })
   }
   return state;
 }
