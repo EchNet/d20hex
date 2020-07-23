@@ -12,40 +12,38 @@ export class Map extends React.Component {
   constructor(props) {
     super(props)
     this.state = {}
-    this.canvasDirty = true;
+    this.initialDraw = false;
     this.dragging = false;
     this.hoverHex = null;
     this.boundWindowResizeHandler = this.handleWindowResize.bind(this)
     this.boundBackgroundRedrawHandler = this.handleBackgroundRedraw.bind(this)
   }
   componentDidMount() {
-    // Trigger loading of map data as needed.
-    this.props.dispatch({ type: actions.WANT_MAP })
-    this.resizeCanvas()
-    this.renderAll()
     window.addEventListener("resize", this.boundWindowResizeHandler)
     mapEventEmitter.on("bgUpdate", this.boundBackgroundRedrawHandler)
+    if (this.props.bgMap) {
+      this.rescaleCanvas()
+      this.drawBackground()
+      this.initialDraw = true;
+    }
+    else {
+      // Trigger loading of map data as needed.
+      this.props.dispatch({ type: actions.WANT_MAP })
+    }
   }
   componentDidUpdate() {
-    this.checkForCanvasUpdate()
+    if (!this.initialDraw && this.props.bgMap) {
+      this.rescaleCanvas()
+      this.drawBackground()
+      this.initialDraw = true;
+    }
   }
   componentWillUnmount() {
     window.addEventListener("resize", this.boundWindowResizeHandler)
     mapEventEmitter.off("bgUpdate", this.boundBackgroundRedrawHandler)
   }
-  checkForCanvasUpdate() {
-    if (this.canvasDirty) {
-      this.renderAll()
-    }
-  }
-  renderAll() {
-    if (this.props.bgMap) {
-      this.renderBackground()
-      this.canvasDirty = false;
-    }
-  }
-  resizeCanvas() {
-    // Maintain scale of all canvases as one, staying constant despite window resizes.
+  rescaleCanvas() {
+    // Maintain 1-1 scale of all canvases despite window resizes.
     let resized = false;
     [
       this.refs.backgroundCanvas,
@@ -64,8 +62,7 @@ export class Map extends React.Component {
     })
     return resized;
   }
-  renderBackground() {
-    this.canvasDirty = false;
+  drawBackground() {
     new HexGridRenderer(this.refs.backgroundCanvas, {
       bgMap: this.props.bgMap
     }).clear().drawGrid()
@@ -112,8 +109,9 @@ export class Map extends React.Component {
     )
   }
   handleWindowResize() {
-    if (this.resizeCanvas()) {
-      this.renderAll();
+    if (this.rescaleCanvas()) {
+      this.drawBackground();
+      this.initialDraw = true;
     }
   }
   handleBackgroundRedraw(hex) {

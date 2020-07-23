@@ -121,7 +121,9 @@ function selectCampaign(state, campaign) {
       campaign,
       characters: null,
       charactersKnown: false,
+      bgMap: null,
       mapKnown: false,
+      tokens: [],
       selectedTool: "grabber",
       counterValue: 1
     })
@@ -328,9 +330,7 @@ function placeCounter(state, props) {
     position: `${props.hex.row}:${props.hex.col}`,
     value: `${state.counterValue},black`
   }
-  console.log('here is your new counter', counter)
   tokens = tokens.concat([ counter ])
-  console.log('here is your new tokens', tokens)
   return updateState(state, { tokens , counterValue: state.counterValue + 1 })
 }
 

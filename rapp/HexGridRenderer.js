@@ -8,8 +8,6 @@ const SINDEG30 = Math.sin(DEG30);
 const COSDEG30 = Math.cos(DEG30);
 const SQRT3 = Math.sqrt(3);
 
-// Math...
-
 function sq(x) { return x*x; }
 
 function dist(x0, y0, x1, y1) {
@@ -18,20 +16,27 @@ function dist(x0, y0, x1, y1) {
 
 export class HexGridGeometry {
   constructor(options = null) {
-    this.options = Object.assign({}, {
-      radius: 28,
-      lineWidth: 1,
-    }, options);
+    this.options = Object.assign({}, this.defaultOptions(), options)
+  }
+  defaultOptions() {
+    return {
+      // The size of the regular hexagon, also the radius of a circumscribed circle.
+      radius: 28
+    }
+  }
+  get radius() {
+    return this.options.radius;
   }
   get unitDistance() {
+    // Unit distance is the distance between corresponding points of any two adjacent hexes.
+    // It is also the diameter of an inscribed circle.
     return this.options.radius * SQRT3;
   }
   traverseGrid(width, height, callback) {
-    // Radius is the distance between adjacent vertices or between the center and a vertex.
     const radius = this.options.radius;
 
-    // Unit distance is the distance between corresponding points of any two adjacent hexes.
     const unitDistance = this.unitDistance;
+    // Vector looking down and to the right:
     const unitDistanceX = unitDistance * COSDEG30;
     const unitDistanceY = unitDistance * SINDEG30;
 
@@ -72,8 +77,8 @@ export class HexGridGeometry {
     var x = cx, y = cy;  // Start at the center.
     var angle = 0;       // Pointing at the vertex to the right.
     for (var i = 0; i <= 6; ++i) {
-      x += Math.cos(angle) * this.options.radius;
-      y += Math.sin(angle) * this.options.radius;
+      x += Math.cos(angle) * this.radius;
+      y += Math.sin(angle) * this.radius;
       callback(x, y, i);
       // The first iteration is special because we started at the center point.
       // The remaining iterations move from one vertex to another.
@@ -82,12 +87,14 @@ export class HexGridGeometry {
   }
   // Map (row,col) to (cx,cy).
   locateHex(hex) {
-    const radius = this.options.radius;
-    const unitDistance = this.unitDistance;
-    let cx = hex.col * (radius * 3 / 2)
-    let cy = (hex.row * unitDistance) - ((hex.col % 2) * unitDistance * SINDEG30)
+    let cx = hex.col * (this.radius * 3 / 2)
+    let cy = hex.row * this.unitDistance;
+    if (hex.col % 2) {
+      cy -= this.unitDistance * SINDEG30;
+    }
     hex.cx = cx;
     hex.cy = cy;
+    return hex;
   }
 }
 
@@ -96,9 +103,12 @@ export class HexGridRenderer extends HexGridGeometry {
     super(options)
     this.canvas = canvas;
     this.context = canvas.getContext("2d");
-    this.options = Object.assign({
-      strokeStyle: "rgb(200,200,200)"
-    }, this.options);
+  }
+  defaultOptions() {
+    return Object.assign({}, super.defaultOptions(), {
+      strokeStyle: "rgb(200,200,200)",
+      lineWidth: 1
+    })
   }
   clear() {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -140,7 +150,7 @@ export class HexGridRenderer extends HexGridGeometry {
       context.strokeStyle = this.options.strokeStyle;
       context.lineWidth = this.options.lineWidth;
       context.beginPath();
-      this.locateHex(hex)
+      hex = this.locateHex(hex)
       this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
         context[index == 0 ? "moveTo" : "lineTo"](x, y);
       })

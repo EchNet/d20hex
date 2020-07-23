@@ -10,23 +10,22 @@ export class Token extends React.Component {
     const digits = number.length;
     const color = valueParts[1];
     const geometry = new HexGridGeometry();
-    const diameter = geometry.unitDistance;
+    const tokenDiameter = geometry.unitDistance;
     const positionParts = this.props.token.position.split(":")
-    let hex = { row: positionParts[0], col: positionParts[1] }
-    geometry.locateHex(hex);
-    // TODO: clip
+    let hex = geometry.locateHex({ row: positionParts[0], col: positionParts[1] });
     return (
       <div style={{
               position: "absolute",
-              top: `${Math.floor(hex.cy - diameter/2 + 0.5)}px`,
-              left: `${Math.floor(hex.cx - diameter/2 + 0.5)}px`,
+              top: `${hex.cy - tokenDiameter/2}px`,
+              left: `${hex.cx - tokenDiameter/2}px`,
               color: "white",
               backgroundColor: color,
-              width: `${diameter}px`,
-              height: `${diameter}px`,
-              lineHeight: `${diameter - 4 - digits*2}px`,
+              width: `${tokenDiameter}px`,
+              height: `${tokenDiameter}px`,
+              paddingTop: `${tokenDiameter * digits/8 - 1}px`,
+              lineHeight: `${tokenDiameter * (4-digits)/4}px`,
               borderRadius: "50%",
-              fontSize: `${diameter - 4 - digits*2}px`,
+              fontSize: `${tokenDiameter * (4-digits)/4}px`,
               textAlign: "center"
           }}>{ number }</div>
     )
