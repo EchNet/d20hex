@@ -34,6 +34,7 @@ class EchoConsumer(AsyncJsonWebsocketConsumer):
       # Apparently, group_send does JSON serialization underneath the hood.
       await self.channel_layer.group_send(self.group_id, {
           "type": "campaign.echo",
+          "origin": self.channel_name,
           "message": message,
       })
       # Update the database.
@@ -67,6 +68,9 @@ class EchoConsumer(AsyncJsonWebsocketConsumer):
 
   # Handler for campaign.echo event just sends the message to the client.
   async def campaign_echo(self, event):
+    origin = event.get("origin")
+    if origin == self.channel_name:
+      return
     message = event.get("message")
     # Avoid race conditions around campaign switches.
     if message.get("campaignId") != self.campaign_id:
