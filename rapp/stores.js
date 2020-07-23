@@ -1,5 +1,6 @@
 import { createStore } from "redux"
 import EventEmitter from "eventemitter3"
+import { v4 as uuidv4 } from "uuid";
 
 import { apiConnector, echoConnector } from "./connectors"
 import actions from "./actions"
@@ -74,6 +75,10 @@ function stateReducer(state = 0, action) {
     return mapKnown(state, action.data)
   case actions.SET_BACKGROUND:
     return setBackground(state, action.props)
+  case actions.SELECT_TOOL:
+    return selectTool(state, action.tool)
+  case actions.PLACE_COUNTER:
+    return placeCounter(state, action.props)
   }
   if (DEBUG) console.log("warning: action unhandled")
   return state || {};
@@ -113,7 +118,12 @@ function selectCampaign(state, campaign) {
   const newId = campaign ? campaign.id : null;
   if (currentId !== newId) {
     state = updateState(state, {
-      campaign, characters: null, charactersKnown: false, mapKnown: false
+      campaign,
+      characters: null,
+      charactersKnown: false,
+      mapKnown: false,
+      selectedTool: "grabber",
+      counterValue: 1
     })
     echoConnector.broadcast({
       type: "uc",
@@ -278,26 +288,22 @@ function wantMap(state) {
 }
 
 function mapKnown(state, mapData) {
-  const map = {
-    bg: extractBgMap(mapData)
-  }
-  return updateState(state, { map, mapKnown: true })
-}
-
-function extractBgMap(mapData) {
-  let bgHash = {}
+  const bgHash = {}
+  const tokens = []
   mapData.forEach((ele) => {
     if (ele.layer == "bg") {
       bgHash[ele.position] = ele.value
     }
+    else {
+      tokens.push(ele)
+    }
   })
-  return new BgMap(bgHash)
+  return updateState(state, { bgMap: new BgMap(bgHash), tokens, mapKnown: true })
 }
 
 function setBackground(state, props) {
-  if (!state.map) return;
-  if (state.map.bg.setBgValue(props.hex.row, props.hex.col, props.value)) {
-    console.log('bg update going out', props.hex)
+  if (!state.bgMap) return;
+  if (state.bgMap.setBgValue(props.hex.row, props.hex.col, props.value)) {
     mapEventEmitter.emit("bgUpdate", props.hex)
     if (props.author) {
       echoConnector.broadcast({
@@ -309,6 +315,23 @@ function setBackground(state, props) {
     }
   }
   return state;
+}
+
+function selectTool(state, selectedTool) {
+  return updateState(state, { selectedTool })
+}
+
+function placeCounter(state, props) {
+  let tokens = state.tokens || [] 
+  let counter = {
+    uuid: uuidv4(),
+    position: `${props.hex.row}:${props.hex.col}`,
+    value: `${state.counterValue},black`
+  }
+  console.log('here is your new counter', counter)
+  tokens = tokens.concat([ counter ])
+  console.log('here is your new tokens', tokens)
+  return updateState(state, { tokens , counterValue: state.counterValue + 1 })
 }
 
 //=============================================

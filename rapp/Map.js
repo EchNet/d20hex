@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import actions from "./actions"
 import { mapEventEmitter } from "./stores"
 import HexGridRenderer from "./HexGridRenderer"
+import Token from "./Token"
 import "./Map.css"
 
 
@@ -20,10 +21,8 @@ export class Map extends React.Component {
   componentDidMount() {
     // Trigger loading of map data as needed.
     this.props.dispatch({ type: actions.WANT_MAP })
-    this.resizeCanvas();
-    if (this.props.map) {
-      this.renderBackground();
-    }
+    this.resizeCanvas()
+    this.renderAll()
     window.addEventListener("resize", this.boundWindowResizeHandler)
     mapEventEmitter.on("bgUpdate", this.boundBackgroundRedrawHandler)
   }
@@ -35,8 +34,14 @@ export class Map extends React.Component {
     mapEventEmitter.off("bgUpdate", this.boundBackgroundRedrawHandler)
   }
   checkForCanvasUpdate() {
-    if (this.props.map && this.canvasDirty) {
+    if (this.canvasDirty) {
+      this.renderAll()
+    }
+  }
+  renderAll() {
+    if (this.props.bgMap) {
       this.renderBackground()
+      this.canvasDirty = false;
     }
   }
   resizeCanvas() {
@@ -44,16 +49,17 @@ export class Map extends React.Component {
     let resized = false;
     [
       this.refs.backgroundCanvas,
-      this.refs.foregroundCanvas,
       this.refs.gestureCanvas
     ].forEach((canvas) => {
-      if (canvas.height != canvas.clientHeight) {
-        canvas.height = canvas.clientHeight;
-        resized = true;
-      }
-      if (canvas.height != canvas.clientWidth) {
-        canvas.width = canvas.clientWidth;
-        resized = true;
+      if (canvas) {
+        if (canvas.height != canvas.clientHeight) {
+          canvas.height = canvas.clientHeight;
+          resized = true;
+        }
+        if (canvas.height != canvas.clientWidth) {
+          canvas.width = canvas.clientWidth;
+          resized = true;
+        }
       }
     })
     return resized;
@@ -61,21 +67,23 @@ export class Map extends React.Component {
   renderBackground() {
     this.canvasDirty = false;
     new HexGridRenderer(this.refs.backgroundCanvas, {
-      bgMap: this.props.map.bg
+      bgMap: this.props.bgMap
     }).clear().drawGrid()
   }
   renderOneBackgroundHex(hex) {
-    console.log('renderOneBackgroundHex', hex, this.props.map.bg.getBgValue(hex.row, hex.col))
     new HexGridRenderer(this.refs.backgroundCanvas, {
-      bgMap: this.props.map.bg
+      bgMap: this.props.bgMap
     }).drawHex(hex)
   }
   render() {
     return (
       <div className="Map">
-        <canvas key="backgroundCanvas" ref="backgroundCanvas"></canvas>
-        <canvas key="foregroundCanvas" ref="foregroundCanvas"></canvas>
-        <canvas key="gestureCanvas" ref="gestureCanvas"
+        <canvas className="layer" key="backgroundCanvas" ref="backgroundCanvas"></canvas>
+        <div className="layer">
+          { this.props.tokens &&
+            this.props.tokens.map((token) => <Token key={token.uuid} token={token}/>) }
+        </div>
+        <canvas className="layer" key="gestureCanvas" ref="gestureCanvas"
           onMouseEnter={(event) => this.handleMouseEnter(event)}
           onMouseLeave={(event) => this.handleMouseLeave(event)}
           onMouseMove={(event) => this.handleMouseMove(event)}
@@ -105,7 +113,7 @@ export class Map extends React.Component {
   }
   handleWindowResize() {
     if (this.resizeCanvas()) {
-      this.renderBackground();
+      this.renderAll();
     }
   }
   handleBackgroundRedraw(hex) {
@@ -136,11 +144,6 @@ export class Map extends React.Component {
         this.assignColorToHex(hex, this.selectedTool[1])
       }
       break;
-    case "grabber":
-      if (hex) {
-        new HexGridRenderer(this.refs.gestureCanvas, { strokeStyle: "orange" }).drawHex(hex)
-      }
-      break;
     case "info":
       if (hex) {
         infoHex = hex;
@@ -151,11 +154,15 @@ export class Map extends React.Component {
   }
   handleMouseDown(event) {
     const selectedTool = this.selectedTool;
-    if (selectedTool[0] == "bg") {
-      const hex = this.getBoundingHexOfEvent(event)
-      if (hex) {
+    const hex = this.getBoundingHexOfEvent(event)
+    if (hex) {
+      switch (selectedTool[0]) {
+      case "bg":
         this.dragging = true;
         this.assignColorToHex(hex, selectedTool[1])
+        break;
+      case "counter":
+        this.dropCounterOnHex(hex)
       }
     }
   }
@@ -163,9 +170,8 @@ export class Map extends React.Component {
     this.dragging = false;
   }
   get selectedTool() {
-    const toolboxState = this.props.toolboxState;
-    if (toolboxState && toolboxState.selectedTool) {
-      return toolboxState.selectedTool.split(":")
+    if (this.props.selectedTool) {
+      return this.props.selectedTool.split(":")
     }
     return [""]
   }
@@ -179,6 +185,9 @@ export class Map extends React.Component {
     this.props.dispatch({ type: actions.SET_BACKGROUND, props: {
       author: true, hex: hex, value: color
     }})
+  }
+  dropCounterOnHex(hex, color) {
+    this.props.dispatch({ type: actions.PLACE_COUNTER, props: { hex }})
   }
   static eventPoint(event) {
     var rect = event.target.getBoundingClientRect();

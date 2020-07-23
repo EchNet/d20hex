@@ -16,93 +16,24 @@ function dist(x0, y0, x1, y1) {
   return Math.sqrt(sq(y0 - y1) + sq(x1 - x0));
 }
 
-export class HexGridRenderer {
-  constructor(canvas, options = null) {
-    this.canvas = canvas;
-    this.context = canvas.getContext("2d");
+export class HexGridGeometry {
+  constructor(options = null) {
     this.options = Object.assign({}, {
       radius: 28,
       lineWidth: 1,
-      strokeStyle: "rgb(200,200,200)"
     }, options);
   }
-  clear() {
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    return this;
+  get unitDistance() {
+    return this.options.radius * SQRT3;
   }
-  drawGrid() {
-    // Draw the entire grid in a single stroke.
-    const context = this.context;
-    context.lineWidth = this.options.lineWidth;
-    context.strokeStyle = this.options.strokeStyle;
-    if (this.options.bgMap) {
-      this.traverseGrid((hex) => {
-        let bgValue = this.options.bgMap.getBgValue(hex.row, hex.col)
-        if (bgValue) {
-          this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
-            context.beginPath();
-            this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
-              context[index == 0 ? "moveTo" : "lineTo"](x, y);
-            })
-            context.fillStyle = bgValue;
-            context.fill();
-          })
-        }
-      })
-    }
-    context.beginPath();
-    this.traverseGrid((hex) => {
-      this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
-        // Don't retrace lines.
-        let noLine = (index == 0) || (hex.stripeCount && (index == 2 || index == 3)) || (hex.cellCount && index == 4);
-        context[noLine ? "moveTo" : "lineTo"](x, y);
-      })
-    })
-    context.stroke();
-  }
-  getBoundingHex(point) {
-    // TODO: optimize.
-    var closest = null;
-    this.traverseGrid((hex) => {
-      const distance = dist(hex.cx, hex.cy, point.x, point.y)
-      if (!closest || distance < closest.distance) {
-        closest = Object.assign(hex, { distance })
-      }
-    })
-    return closest;
-  }
-  drawHex(hex) {
-    if (hex) {
-      const context = this.context;
-      context.strokeStyle = this.options.strokeStyle;
-      context.lineWidth = this.options.lineWidth;
-      context.beginPath();
-      this.locateHex(hex)
-      this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
-        context[index == 0 ? "moveTo" : "lineTo"](x, y);
-      })
-      if (this.options.bgMap) {
-        const bgValue = this.options.bgMap.getBgValue(hex.row, hex.col)
-        if (bgValue) {
-          context.fillStyle = bgValue;
-          context.fill();
-        }
-      }
-      context.stroke();
-    }
-  }
-  traverseGrid(callback) {
+  traverseGrid(width, height, callback) {
     // Radius is the distance between adjacent vertices or between the center and a vertex.
     const radius = this.options.radius;
 
     // Unit distance is the distance between corresponding points of any two adjacent hexes.
-    const unitDistance = radius * SQRT3;
+    const unitDistance = this.unitDistance;
     const unitDistanceX = unitDistance * COSDEG30;
     const unitDistanceY = unitDistance * SINDEG30;
-
-    // Fill the whole canvas.
-    const width = this.canvas.width;
-    const height = this.canvas.height;
 
     // Start at the lower left corner and work up toward the upper left corner, then the
     // upper right.  Draw stripes that originate at the edge and proceed 30 degrees downward
@@ -152,11 +83,91 @@ export class HexGridRenderer {
   // Map (row,col) to (cx,cy).
   locateHex(hex) {
     const radius = this.options.radius;
-    const unitDistance = radius * SQRT3;
+    const unitDistance = this.unitDistance;
     let cx = hex.col * (radius * 3 / 2)
-    let cy = (hex.row * unitDistance) - (hex.col % 2) * (unitDistance * SINDEG30)
+    let cy = (hex.row * unitDistance) - ((hex.col % 2) * unitDistance * SINDEG30)
     hex.cx = cx;
     hex.cy = cy;
+  }
+}
+
+export class HexGridRenderer extends HexGridGeometry {
+  constructor(canvas, options = null) {
+    super(options)
+    this.canvas = canvas;
+    this.context = canvas.getContext("2d");
+    this.options = Object.assign({
+      strokeStyle: "rgb(200,200,200)"
+    }, this.options);
+  }
+  clear() {
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    return this;
+  }
+  drawGrid() {
+    // Draw the entire grid in a single stroke.
+    const context = this.context;
+    context.lineWidth = this.options.lineWidth;
+    context.strokeStyle = this.options.strokeStyle;
+    if (this.options.bgMap) {
+      this.traverseCanvas((hex) => {
+        let bgValue = this.options.bgMap.getBgValue(hex.row, hex.col)
+        if (bgValue) {
+          this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
+            context.beginPath();
+            this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
+              context[index == 0 ? "moveTo" : "lineTo"](x, y);
+            })
+            context.fillStyle = bgValue;
+            context.fill();
+          })
+        }
+      })
+    }
+    context.beginPath();
+    this.traverseCanvas((hex) => {
+      this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
+        // Don't retrace lines.
+        let noLine = (index == 0) || (hex.stripeCount && (index == 2 || index == 3)) || (hex.cellCount && index == 4);
+        context[noLine ? "moveTo" : "lineTo"](x, y);
+      })
+    })
+    context.stroke();
+  }
+  drawHex(hex) {
+    if (hex) {
+      const context = this.context;
+      context.strokeStyle = this.options.strokeStyle;
+      context.lineWidth = this.options.lineWidth;
+      context.beginPath();
+      this.locateHex(hex)
+      this.describeHexagon(hex.cx, hex.cy, (x, y, index) => {
+        context[index == 0 ? "moveTo" : "lineTo"](x, y);
+      })
+      if (this.options.bgMap) {
+        const bgValue = this.options.bgMap.getBgValue(hex.row, hex.col)
+        if (bgValue) {
+          context.fillStyle = bgValue;
+          context.fill();
+        }
+      }
+      context.stroke();
+    }
+  }
+  getBoundingHex(point) {
+    // TODO: optimize.
+    var closest = null;
+    this.traverseCanvas((hex) => {
+      const distance = dist(hex.cx, hex.cy, point.x, point.y)
+      if (!closest || distance < closest.distance) {
+        closest = Object.assign(hex, { distance })
+      }
+    })
+    return closest;
+  }
+  traverseCanvas(callback) {
+    // Cover the whole canvas.
+    this.traverseGrid(this.canvas.width, this.canvas.height, callback)
   }
 }
 

@@ -1,18 +1,10 @@
 import * as React from "react"
 import { connect } from 'react-redux';
 
+import actions from "./actions"
 import "./MapToolbox.css"
 
 export class MapToolbox extends React.Component {
-  static defaultState() {
-    return {
-      selectedTool: "grabber"
-    }
-  }
-  constructor(props) {
-    super(props)
-    this.state = MapToolbox.defaultState()
-  }
   render() {
     return (
       <div className="MapToolbox">
@@ -28,13 +20,33 @@ export class MapToolbox extends React.Component {
             <i className="material-icons">help_outline</i>
           </div>
           <hr></hr>
-          { this.renderBgTool("#777777") }
+          { this.renderBgTool("#848484") }
           { this.renderBgTool("#bda878") }
           { this.renderBgTool("#449944") }
           { this.renderBgTool("#7686ee") }
           { this.renderBgTool("white") }
+          <hr></hr>
+          { this.renderCounterTool("black") }
         </form>
       </div>
+    )
+  }
+  renderCounterTool(color) {
+    const digits = this.props.counterValue.toString().length;
+    return (
+      <div className={this.classifyTool("counter")}
+          onClick={(event) => this.handleToolClick(event)}
+          style={{
+              color: "white",
+              backgroundColor: color,
+              width: "32px",
+              height: "32px",
+              lineHeight: `${28 - digits*2}px`,
+              borderRadius: "50%",
+              fontSize: `${25 - digits*2}px`,
+              textAlign: "center"
+          }}
+          data-tool="counter">{ this.props.counterValue }</div>
     )
   }
   renderBgTool(color) {
@@ -51,20 +63,14 @@ export class MapToolbox extends React.Component {
     if (name2 == "white") {
       className = `${className} white`;
     }
-    if (this.state.selectedTool == toolName) {
+    if (this.props.selectedTool == toolName) {
       className = `${className} selected`;
     }
     return className;
   }
   handleToolClick(event) {
     const newSelectedTool = event.currentTarget.getAttribute("data-tool")
-    const onChange = this.props.onChange;
-    this.setState((oldState) => {
-      if (newSelectedTool != oldState.selectedTool) {
-        onChange && this.props.onChange({ selectedTool: newSelectedTool })
-        return({ selectedTool: newSelectedTool })
-      }
-    })
+    this.props.dispatch({ type: actions.SELECT_TOOL, tool: newSelectedTool })
   }
 }
 const mapState = (state) => {

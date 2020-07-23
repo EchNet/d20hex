@@ -17,7 +17,6 @@ export class ActionView extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      mapToolboxState: MapToolbox.defaultState(),
       timeCardShown: false,
       meleeCardShown: false,
       locationCardShown: false
@@ -36,11 +35,18 @@ export class ActionView extends React.Component {
           <div>
             { this.renderLocationTab(this.props.currentLocation) }
           </div>
-          <MapToolbox onChange={(event) => this.handleMapToolboxChange(event)}/>
+          <MapToolbox/>
         </div>
-        <Map toolboxState={this.state.mapToolboxState}/>
+        <Map/>
       </div>
     )
+  }
+  handleUseCounter() {
+    this.setState((oldState) => ({
+      mapToolboxState:
+          Object.assign({}, oldState.mapToolboxState,
+          { counterValue: oldState.mapToolboxState.counterValue + 1 })
+    }))
   }
   handleMapToolboxChange(newState) {
     this.setState({ mapToolboxState: newState })
