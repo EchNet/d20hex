@@ -7,9 +7,9 @@ export class Token extends React.Component {
   render() {
     const token = this.props.token;
     const valueParts = token.value.split(",")
-    const number = valueParts[0];
-    const digits = number.length;
-    const color = valueParts[1];
+    const label = valueParts[0];
+    const digits = label.length;
+    const fillStyle = valueParts[1];
     const geometry = new HexGridGeometry();
     const tokenDiameter = geometry.unitDistance;
     const positionParts = token.position.split(":")
@@ -20,7 +20,8 @@ export class Token extends React.Component {
               top: `${hex.cy - tokenDiameter/2}px`,
               left: `${hex.cx - tokenDiameter/2}px`,
               color: "white",
-              backgroundColor: color,
+              background: fillStyle,
+              backgroundSize: "cover",
               width: `${tokenDiameter}px`,
               height: `${tokenDiameter}px`,
               paddingTop: `${tokenDiameter * digits/8 - 1}px`,
@@ -31,7 +32,7 @@ export class Token extends React.Component {
           }}
         onMouseMove={(event) => event.preventDefault()}
         onMouseDown={(event) => event.preventDefault()}
-        >{ number }</div>
+        >{ label }</div>
     )
   }
 }
