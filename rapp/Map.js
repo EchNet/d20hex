@@ -13,7 +13,7 @@ export class Map extends React.Component {
     super(props)
     this.state = {}
     this.initialDraw = false;
-    this.dragging = false;
+    this.dragGesture = null;
     this.hoverHex = null;
     this.boundWindowResizeHandler = this.handleWindowResize.bind(this)
     this.boundBackgroundRedrawHandler = this.handleBackgroundRedraw.bind(this)
@@ -74,29 +74,29 @@ export class Map extends React.Component {
   }
   render() {
     return (
-      <div className="Map">
-        <canvas className="layer" key="backgroundCanvas" ref="backgroundCanvas"></canvas>
-        <div className="layer">
-          { this.props.tokens &&
-            this.props.tokens.map((token) => <Token key={token.uuid} token={token}/>) }
-        </div>
-        <canvas className="layer" key="gestureCanvas" ref="gestureCanvas"
+      <div className={`Map ${this.selectedTool[0]}`}
           onMouseEnter={(event) => this.handleMouseEnter(event)}
           onMouseLeave={(event) => this.handleMouseLeave(event)}
           onMouseMove={(event) => this.handleMouseMove(event)}
           onMouseDown={(event) => this.handleMouseDown(event)}
-          onMouseUp={(event) => this.handleMouseUp(event)}
-          ></canvas>
-        { !!this.state.infoHex && this.renderHexInfo(this.state.infoHex) }
+          onMouseUp={(event) => this.handleMouseUp(event)}>
+        <canvas className="layer" key="backgroundCanvas" ref="backgroundCanvas"></canvas>
+        <canvas className="layer" key="gestureCanvas" ref="gestureCanvas"></canvas>
+        <div className="layer">
+          { this.props.tokens &&
+            this.props.tokens.map((token) => <Token key={token.uuid} token={token}/>) }
+        </div>
+        { this.selectedTool[0] == "info" && !!this.state.hoverHex &&
+          this.renderHexInfo(this.state.hoverHex) }
       </div>
     )
   }
-  renderHexInfo(infoHex) {
+  renderHexInfo(hex) {
     return (
       <div style={{
         position: "absolute",
-        top: `${infoHex.cy}px`,
-        left: `${infoHex.cx}px`,
+        top: `${hex.cy}px`,
+        left: `${hex.cx}px`,
         border: "solid 1px black",
         borderRadius: "5px",
         padding: "2px",
@@ -104,7 +104,7 @@ export class Map extends React.Component {
         color: "black",
         fontSize: "12px"
       }}>
-        { infoHex.row }:{ infoHex.col }
+        { hex.row }:{ hex.col }
       </div>
     )
   }
@@ -121,51 +121,36 @@ export class Map extends React.Component {
     this.handleMouseMove(event)
   }
   handleMouseLeave(event) {
-    this.clearAllFeedback()
-    this.setState({ infoHex: null })
-    this.dragging = false;
-    this.hoverHex = null;
+    this.endDrag(true)
+    this.setState({ hoverHex: null })
   }
   handleMouseMove(event) {
-    this.clearAllFeedback()
     const hex = this.getBoundingHexOfEvent(event)
-    if (!hexesEqual(hex, this.hoverHex)) {
-      this.handleHexTransition(hex)
+    if (!hexesEqual(hex, this.state.hoverHex)) {
+      this.dragGesture && this.dragGesture.enterHex(hex);
+      this.setState({ hoverHex: hex })
     }
-    this.hoverHex = hex;
-  }
-  handleHexTransition(hex) {
-    let infoHex = null;
-    switch (this.selectedTool[0]) {
-    case "bg":
-      if (this.dragging && hex) {
-        this.assignColorToHex(hex, this.selectedTool[1])
-      }
-      break;
-    case "info":
-      if (hex) {
-        infoHex = hex;
-      }
-      break;
-    }
-    this.setState({ infoHex })
   }
   handleMouseDown(event) {
-    const selectedTool = this.selectedTool;
     const hex = this.getBoundingHexOfEvent(event)
     if (hex) {
+      const selectedTool = this.selectedTool;
       switch (selectedTool[0]) {
       case "bg":
-        this.dragging = true;
-        this.assignColorToHex(hex, selectedTool[1])
+        this.dragGesture = new BackgroundPaintGesture(this, selectedTool[1]).start(hex);
         break;
       case "counter":
         this.dropCounterOnHex(hex)
+        break;
+      case "grabber":
+        if (event.target.className == "Token") {
+          this.dragGesture = new TokenMoveGesture(this, event.target.getAttribute("data-uuid")).start(hex);
+        }
       }
     }
   }
   handleMouseUp(event) {
-    this.dragging = false;
+    this.endDrag()
   }
   get selectedTool() {
     if (this.props.selectedTool) {
@@ -187,13 +172,83 @@ export class Map extends React.Component {
   dropCounterOnHex(hex, color) {
     this.props.dispatch({ type: actions.PLACE_COUNTER, props: { hex }})
   }
+  endDrag(isCancelled = false) {
+    if (!isCancelled && this.dragGesture) {
+      this.dragGesture.terminate();
+    }
+    this.clearAllFeedback()
+    this.dragGesture = null;
+  }
   static eventPoint(event) {
-    var rect = event.target.getBoundingClientRect();
+    var rect = event.currentTarget.getBoundingClientRect();
     var x = event.clientX - rect.left;
     var y = event.clientY - rect.top;
     return { x, y }
   }
 }
+
+class DragGesture {
+  constructor(mapComponent) {
+    this.mapComponent = mapComponent;
+  }
+  start(hex) {
+    return this.enterHex(hex)
+  }
+  enterHex(hex) {
+  }
+  terminate() {
+  }
+}
+
+class BackgroundPaintGesture extends DragGesture {
+  constructor(mapComponent, fillStyle) {
+    super(mapComponent)
+    this.fillStyle = fillStyle;
+  }
+  enterHex(hex) {
+    this.mapComponent.assignColorToHex(hex, this.fillStyle)
+  }
+}
+
+class TokenMoveGesture extends DragGesture {
+  constructor(mapComponent, tokenUuid) {
+    super(mapComponent)
+    this.tokenUuid = tokenUuid;
+  }
+  start(hex) {
+    this.sourceHex = hex;
+    this.destHex = null;
+    this.draw()
+    return this;
+  }
+  enterHex(hex) {
+    this.destHex = hex;
+    this.draw();
+  }
+  terminate() {
+    if (this.destHex && !hexesEqual(this.sourceHex, this.destHex)) {
+      this.mapComponent.props.dispatch({ type: actions.MODIFY_TOKEN, props: {
+        uuid: this.tokenUuid,
+        position: `${this.destHex.row}:${this.destHex.col}`
+      }})
+    }
+  }
+  draw() {
+    if (this.sourceHex) {
+      new HexGridRenderer(this.mapComponent.refs.gestureCanvas, {
+        strokeStyle: "orange",
+        lineWidth: 2
+      }).clear().drawHex(this.sourceHex)
+    }
+    if (this.destHex && !hexesEqual(this.sourceHex, this.destHex)) {
+      new HexGridRenderer(this.mapComponent.refs.gestureCanvas, {
+        strokeStyle: "red",
+        lineWidth: 2
+      }).clear().drawHex(this.destHex)
+    }
+  }
+}
+
 function hexesEqual(h1, h2) {
   return (!!h1 == !!h2) && (!h1 || (h1.row == h2.row && h1.col == h2.col))
 }

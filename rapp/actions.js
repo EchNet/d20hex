@@ -34,7 +34,8 @@ export const actions = {
   "SELECT_TOOL": "selectTool",
   "PLACE_COUNTER": "placeCounter",
   "PLACE_TOKEN": "placeToken",
-  "ECHO_TOKEN": "echoToken"
+  "ECHO_TOKEN": "echoToken",
+  "MODIFY_TOKEN": "modifyToken"
 }
 
 export default actions

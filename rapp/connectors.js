@@ -116,9 +116,9 @@ class EchoConnector extends EventEmitter {
         this.client.onclose = () => {
           this.emit("socket.disconnect")
         }
-        this.client.onmessage = (event) => {
-          if (DEBUG) console.log(event)
-          const data = JSON.parse(event.data)
+        this.client.onmessage = (message) => {
+          if (DEBUG) console.log("MESSAGE RECEIVED", message)
+          const data = JSON.parse(message.data)
           this.emit(`app.${data.type}`, data)
         }
       })
@@ -126,7 +126,9 @@ class EchoConnector extends EventEmitter {
     return this.openPromise;
   }
   broadcast(event) {
+    if (DEBUG) console.log("TO BE BROADCAST", event)
     this.open().then((client) => {
+      if (DEBUG) console.log("BROADCASTING", event)
       client.send(JSON.stringify(event))
     })
   }

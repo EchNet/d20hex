@@ -85,6 +85,8 @@ function stateReducer(state = 0, action) {
     return placeCounter(state, action.props)
   case actions.ECHO_TOKEN:
     return echoToken(state, action.props)
+  case actions.MODIFY_TOKEN:
+    return modifyToken(state, action.props)
   }
   if (DEBUG) console.log("warning: action unhandled")
   return state || {};
@@ -96,9 +98,11 @@ store.subscribe(() => DEBUG && console.log("NEW STATE", store.getState()))
 store.dispatch({ type: actions.START_APP })
 
 echoConnector.on("app.bg", (props) => {
+  if (DEBUG) console.log("app.bg received", props)
   store.dispatch({ type: actions.ECHO_BACKGROUND, props });
 })
 echoConnector.on("app.token", (props) => {
+  if (DEBUG) console.log("app.token received", props)
   store.dispatch({ type: actions.ECHO_TOKEN, props });
 })
 
@@ -351,6 +355,25 @@ function placeToken(state, props) {
 }
 
 // Author the placement of a counter.
+function modifyToken(state, props) {
+  let tokens = (state.tokens || []).slice()
+  tokens.forEach((token) => {
+    if (token.uuid == props.uuid) {
+      token.value = props.value || token.value;
+      token.position = props.position || token.position;
+      echoConnector.broadcast({
+        type: "token",
+        campaignId: state.campaign.id,
+        uuid: token.uuid,
+        position: token.position,
+        value: token.value
+      })
+    }
+  })
+  return updateState(state, { tokens })
+}
+
+// Author the modification of a counter.
 function placeCounter(state, props) {
   const value = `${state.counterValue},black`
   state = updateState(state, { counterValue: state.counterValue + 1 })
@@ -359,9 +382,19 @@ function placeCounter(state, props) {
 
 // Echo the placement of a token.
 function echoToken(state, props) {
-  let tokens = state.tokens || [] 
-  const token = { uuid: props.uuid, position: props.position, value: props.value }
-  tokens = tokens.concat([ token ])
+  let found = false;
+  let tokens = (state.tokens || []).slice()
+  tokens.forEach((token) => {
+    if (token.uuid == props.uuid) {
+      token.value = props.value;
+      token.position = props.position;
+      found = true;
+    }
+  })
+  if (!found) {
+    const token = { uuid: props.uuid, position: props.position, value: props.value }
+    tokens = tokens.concat([ token ])
+  }
   return updateState(state, { tokens })
 }
 

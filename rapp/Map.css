@@ -10,3 +10,6 @@
   top: 0;
   bottom: 0;
 }
+.Map.grabber {
+  cursor: pointer;
+}
