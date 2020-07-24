@@ -73,12 +73,18 @@ function stateReducer(state = 0, action) {
     return wantMap(state)
   case actions.MAP_KNOWN:
     return mapKnown(state, action.data)
-  case actions.SET_BACKGROUND:
-    return setBackground(state, action.props)
   case actions.SELECT_TOOL:
     return selectTool(state, action.tool)
+  case actions.SET_BACKGROUND:
+    return setBackground(state, action.props)
+  case actions.ECHO_BACKGROUND:
+    return echoBackground(state, action.props)
+  case actions.PLACE_TOKEN:
+    return placeToken(state, action.props)
   case actions.PLACE_COUNTER:
     return placeCounter(state, action.props)
+  case actions.ECHO_TOKEN:
+    return echoToken(state, action.props)
   }
   if (DEBUG) console.log("warning: action unhandled")
   return state || {};
@@ -90,7 +96,10 @@ store.subscribe(() => DEBUG && console.log("NEW STATE", store.getState()))
 store.dispatch({ type: actions.START_APP })
 
 echoConnector.on("app.bg", (props) => {
-  store.dispatch({ type: actions.SET_BACKGROUND, props });
+  store.dispatch({ type: actions.ECHO_BACKGROUND, props });
+})
+echoConnector.on("app.token", (props) => {
+  store.dispatch({ type: actions.ECHO_TOKEN, props });
 })
 
 //=============================================
@@ -303,35 +312,61 @@ function mapKnown(state, mapData) {
   return updateState(state, { bgMap: new BgMap(bgHash), tokens, mapKnown: true })
 }
 
+// Author the setting of a background value.
 function setBackground(state, props) {
-  if (!state.bgMap) return;
-  if (state.bgMap.setBgValue(props.hex.row, props.hex.col, props.value)) {
+  if (state.bgMap && state.bgMap.setBgValue(props.hex.row, props.hex.col, props.value)) {
     mapEventEmitter.emit("bgUpdate", props.hex)
-    if (props.author) {
-      echoConnector.broadcast({
-        type: "bg",
-        campaignId: state.campaign.id,
-        hex: ((hex) => ({ row: hex.row, col: hex.col }))(props.hex),
-        value: props.value
-      })
-    }
+    echoConnector.broadcast({
+      type: "bg",
+      campaignId: state.campaign.id,
+      hex: ((hex) => ({ row: hex.row, col: hex.col }))(props.hex),
+      value: props.value
+    })
   }
   return state;
 }
 
-function selectTool(state, selectedTool) {
-  return updateState(state, { selectedTool })
+// Echo the setting of a background value.
+function echoBackground(state, props) {
+  if (state.bgMap && state.bgMap.setBgValue(props.hex.row, props.hex.col, props.value)) {
+    mapEventEmitter.emit("bgUpdate", props.hex)
+  }
+  return state;
 }
 
-function placeCounter(state, props) {
+// Author the placement of a new token.
+function placeToken(state, props) {
   let tokens = state.tokens || [] 
-  let counter = {
-    uuid: uuidv4(),
-    position: `${props.hex.row}:${props.hex.col}`,
-    value: `${state.counterValue},black`
-  }
-  tokens = tokens.concat([ counter ])
-  return updateState(state, { tokens , counterValue: state.counterValue + 1 })
+  const uuid = uuidv4()
+  const value = props.value;
+  const position = `${props.hex.row}:${props.hex.col}`;
+  let token = { uuid, position, value }
+  tokens = tokens.concat([ token ])
+  echoConnector.broadcast({
+    type: "token",
+    campaignId: state.campaign.id,
+    uuid, position, value
+  })
+  return updateState(state, { tokens })
+}
+
+// Author the placement of a counter.
+function placeCounter(state, props) {
+  const value = `${state.counterValue},black`
+  state = updateState(state, { counterValue: state.counterValue + 1 })
+  return placeToken(state, Object.assign({}, props, { value }))
+}
+
+// Echo the placement of a token.
+function echoToken(state, props) {
+  let tokens = state.tokens || [] 
+  const token = { uuid: props.uuid, position: props.position, value: props.value }
+  tokens = tokens.concat([ token ])
+  return updateState(state, { tokens })
+}
+
+function selectTool(state, selectedTool) {
+  return updateState(state, { selectedTool })
 }
 
 //=============================================

@@ -42,7 +42,7 @@ class TempDocSerializer(serializers.ModelSerializer):
   class Meta:
     model = MapElement
     fields = (
-        "id",
+        "uuid",
         "sector",
         "layer",
         "position",
