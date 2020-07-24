@@ -142,6 +142,9 @@ export class Map extends React.Component {
       case "counter":
         this.dropCounterOnHex(hex)
         break;
+      case "token":
+        this.dropTokenOnHex(hex)
+        break;
       case "grabber":
         if (event.target.className == "Token") {
           this.dragGesture = new TokenMoveGesture(this, event.target.getAttribute("data-uuid")).start(hex);
@@ -170,7 +173,16 @@ export class Map extends React.Component {
     }})
   }
   dropCounterOnHex(hex, color) {
-    this.props.dispatch({ type: actions.PLACE_COUNTER, props: { hex }})
+    this.props.dispatch({
+      type: actions.PLACE_COUNTER,
+      props: { hex, fillStyle: this.selectedTool[1] }
+    })
+  }
+  dropTokenOnHex(hex, color) {
+    this.props.dispatch({
+      type: actions.PLACE_TOKEN,
+      props: { hex, value: `,${this.selectedTool[1]}` }
+    })
   }
   endDrag(isCancelled = false) {
     if (!isCancelled && this.dragGesture) {
@@ -195,6 +207,7 @@ class DragGesture {
     return this.enterHex(hex)
   }
   enterHex(hex) {
+    return this;
   }
   terminate() {
   }
@@ -207,6 +220,7 @@ class BackgroundPaintGesture extends DragGesture {
   }
   enterHex(hex) {
     this.mapComponent.assignColorToHex(hex, this.fillStyle)
+    return this;
   }
 }
 
@@ -224,6 +238,7 @@ class TokenMoveGesture extends DragGesture {
   enterHex(hex) {
     this.destHex = hex;
     this.draw();
+    return this;
   }
   terminate() {
     if (this.destHex && !hexesEqual(this.sourceHex, this.destHex)) {

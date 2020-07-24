@@ -375,7 +375,7 @@ function modifyToken(state, props) {
 
 // Author the modification of a counter.
 function placeCounter(state, props) {
-  const value = `${state.counterValue},black`
+  const value = `${state.counterValue},${props.fillStyle}`
   state = updateState(state, { counterValue: state.counterValue + 1 })
   return placeToken(state, Object.assign({}, props, { value }))
 }

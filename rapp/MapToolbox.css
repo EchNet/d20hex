@@ -41,3 +41,16 @@
   border-top: solid 1px #555;
   margin-bottom: 5px;
 }
+.MapToolbox .tool-wrapper {
+  display: flex;
+}
+.MapToolbox .left-arrow {
+  height: 20px;
+  font-size: 10px;
+  cursor: pointer;
+}
+.MapToolbox .right-arrow {
+  height: 20px;
+  font-size: 10px;
+  cursor: pointer;
+}
