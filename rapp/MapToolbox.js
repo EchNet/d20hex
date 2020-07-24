@@ -2,7 +2,10 @@ import * as React from "react"
 import { connect } from 'react-redux';
 
 import actions from "./actions"
+import config from "./config"
 import "./MapToolbox.css"
+
+let DEBUG = config("DEBUG");
 
 export class MapToolbox extends React.Component {
   render() {
@@ -14,11 +17,13 @@ export class MapToolbox extends React.Component {
               data-tool="grabber">
             <i className="material-icons">touch_app</i>
           </div>
-          <div className={this.classifyTool("info")}
-              onClick={(event) => this.handleToolClick(event)}
-              data-tool="info">
-            <i className="material-icons">help_outline</i>
-          </div>
+          { !!DEBUG && (
+            <div className={this.classifyTool("info")}
+                onClick={(event) => this.handleToolClick(event)}
+                data-tool="info">
+              <i className="material-icons">help_outline</i>
+            </div>
+          )}
           <hr></hr>
           { this.renderBgTool("#848484") }
           { this.renderBgTool("#bda878") }
