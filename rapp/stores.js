@@ -8,402 +8,323 @@ import config from "./config"
 
 let DEBUG = config("DEBUG");
 
-// State properties:
-// .campaigns             A hash of campaigns for the current player, indexed by ID string.
-// .campaignsKnown        True if .campaigns is completely loaded for the current player.
-// .characters            A hash of characters for the current campaign, indexed by ID string.
-// .charactersKnown       True if .characters is completely loaded for the current player and
-//                        campaign.
-// .players               A hash of players for the current user, indexed by ID string.
-// .playersKnown          True if .players is completely loaded for the current user.
-// .user                  The current user.
-
-function stateReducer(state = 0, action) {
-  if (DEBUG) console.log("ACTION", state, action)
-  if (!action.type) throw "null action type";
-  switch (action.type) {
-  case actions.START_APP:
-    return startApp(state)
-  case actions.USER_KNOWN:
-    return userKnown(state, action.data)
-  case actions.SELECT_PLAYER:
-    return selectPlayer(state, action.player)
-  case actions.SELECT_CAMPAIGN:
-    return selectCampaign(state, action.campaign)
-  case actions.CLOSE_CAMPAIGN:
-    return deselectCampaign(state)
-  case actions.SHOW_ERROR:
-    return showError(state, action.message)
-  case actions.SHOW_ALERT:
-    return showAlert(state, action.message)
-  case actions.LOGIN:
-    window.location.href = "/login";
-    break;
-  case actions.CREATE_PLAYER:
-    return createPlayer(state, action.props)
-  case actions.PLAYER_CREATED:
-    return playerCreated(state, action.data)
-  case actions.CREATE_CAMPAIGN:
-    return createCampaign(state, action.props)
-  case actions.CAMPAIGN_CREATED:
-    return campaignCreated(state, action.data)
-  case actions.CREATE_CHARACTER:
-    return createCharacter(state, action.props)
-  case actions.CHARACTER_CREATED:
-    return characterCreated(state, action.data)
-  case actions.PLAYERS_KNOWN:
-    return playersKnown(state, action.data)
-  case actions.CAMPAIGNS_KNOWN:
-    return campaignsKnown(state, action.data)
-  case actions.CHARACTERS_KNOWN:
-    return charactersKnown(state, action.data)
-  case actions.JOIN_CAMPAIGN:
-    return joinCampaign(state, action.props.ticket)
-  case actions.WANT_CHARACTERS:
-    return wantCharacters(state)
-  case actions.UPDATE_PLAYER:
-    return updatePlayer(state, action.props)
-  case actions.PLAYER_UPDATED:
-    return playerUpdated(state, action.data)
-  case actions.UPDATE_CAMPAIGN:
-    return updateCampaign(state, action.props)
-  case actions.CAMPAIGN_UPDATED:
-    return campaignUpdated(state, action.data)
-  case actions.WANT_MAP:
-    return wantMap(state)
-  case actions.MAP_KNOWN:
-    return mapKnown(state, action.data)
-  case actions.SELECT_TOOL:
-    return selectTool(state, action.tool)
-  case actions.SET_BACKGROUND:
-    return setBackground(state, action.props)
-  case actions.ECHO_BACKGROUND:
-    return echoBackground(state, action.props)
-  case actions.PLACE_TOKEN:
-    return placeToken(state, action.props)
-  case actions.PLACE_COUNTER:
-    return placeCounter(state, action.props)
-  case actions.ECHO_TOKEN:
-    return echoToken(state, action.props)
-  case actions.MODIFY_TOKEN:
-    return modifyToken(state, action.props)
-  }
-  if (DEBUG) console.log("warning: action unhandled")
-  return state || {};
-}
-
 export const mapEventEmitter = new EventEmitter()
-export const store = createStore(stateReducer)
-store.subscribe(() => DEBUG && console.log("NEW STATE", store.getState()))
-store.dispatch({ type: actions.START_APP })
 
-echoConnector.on("app.bg", (props) => {
-  if (DEBUG) console.log("app.bg received", props)
-  store.dispatch({ type: actions.ECHO_BACKGROUND, props });
-})
-echoConnector.on("app.token", (props) => {
-  if (DEBUG) console.log("app.token received", props)
-  store.dispatch({ type: actions.ECHO_TOKEN, props });
-})
-
-//=============================================
-// STATE TRANSITIONS
-
-function startApp(state) {
-  return whoAmI(state);
-}
-
-function selectPlayer(state, player) {
-  const currentId = state.player ? state.player.id : null;
-  const newId = player ? player.id : null;
-  if (currentId !== newId) {
-    state = updateState(state, {
-      player, userName: player.name, campaigns: null, campaignsKnown: false })
-    if (player) {
-      state = listCampaignsForPlayer(state)
+class ReducerDispatcherPrime {
+  startApp(state) {
+    return this.whoAmI(state);
+  }
+  selectPlayer(state, player) {
+    const currentId = state.player ? state.player.id : null;
+    const newId = player ? player.id : null;
+    if (currentId !== newId) {
+      state = this.updateState(state, {
+        player, userName: player.name, campaigns: null, campaignsKnown: false })
+      if (player) {
+        state = this.listCampaignsForPlayer(state)
+      }
     }
+    return state
   }
-  return state
-}
-
-function selectCampaign(state, campaign) {
-  const currentId = state.campaign ? state.campaign.id : null;
-  const newId = campaign ? campaign.id : null;
-  if (currentId !== newId) {
-    state = updateState(state, {
-      campaign,
-      characters: null,
-      charactersKnown: false,
-      bgMap: null,
-      mapKnown: false,
-      tokens: [],
-      selectedTool: "grabber",
-      counterValue: 1
-    })
-    echoConnector.broadcast({
-      type: "uc",
-      campaignId: campaign.id
-    })
-  }
-  return state;
-}
-
-function deselectCampaign(state, campaign) {
-  return selectCampaign(state, null)
-}
-
-//=============================================
-// ENTITY CREATION
-
-function createPlayer(state, props) {
-  handleApiCall(apiConnector.createPlayerForUser(state.user, props.name), actions.PLAYER_CREATED)
-  return showApiBlock(state)
-}
-
-function playerCreated(state, player) {
-  state = updatePlayers(state, [ player ])
-  state = selectPlayer(state, player)
-  return unshowApiBlock(state)
-}
-
-function createCampaign(state, props) {
-  handleApiCall(apiConnector.createCampaignForPlayer(state.player, props.name),
-                actions.CAMPAIGN_CREATED)
-  return showApiBlock(state)
-}
-
-function campaignCreated(state, campaign) {
-  // Synthesize the annotated campaign element.
-  campaign = Object.assign(campaign, { creator: state.player, can_manage: true })
-  state = updateCampaigns(state, [ campaign ])
-  return unshowApiBlock(state)
-}
-
-function createCharacter(state, props) {
-  handleApiCall(apiConnector.createPlayerCharacter(state.player, state.campaign, props.name),
-                actions.CHARACTER_CREATED)
-  return showApiBlock(state)
-}
-
-function characterCreated(state, character) {
-  state = updateCharacters(state, [ character ])
-  return unshowApiBlock(state)
-}
-
-function showError(state, errorMessage) {
-  state = updateState(state, { errorMessage })
-  return unshowApiBlock(state)
-}
-
-function showAlert(state, alertMessage) {
-  state = updateState(state, { alertMessage })
-  return unshowApiBlock(state)
-}
-
-//=============================================
-// STATE-BASED API WRAPPERS
-
-function whoAmI(state) {
-  handleApiCall(apiConnector.whoAmI(), actions.USER_KNOWN, actions.LOGIN)
-  return showApiBlock(state)
-}
-
-function userKnown(state, user) {
-  let userName = state.userName;
-  if (!userName) {
-    userName = user.first_name || user.email || user.username;
-  }
-  return listPlayersForUser(updateState(state, { user, userName }))
-}
-
-function listPlayersForUser(state) {
-  handleApiCall(apiConnector.listPlayersForUser(state.user), actions.PLAYERS_KNOWN)
-  return showApiBlock(state)
-}
-
-function playersKnown(state, players) {
-  state = updatePlayers(state, players, true)
-  return unshowApiBlock(state)
-}
-
-function listCampaignsForPlayer(state) {
-  handleApiCall(apiConnector.listCampaignsForPlayer(state.player), actions.CAMPAIGNS_KNOWN)
-  return showApiBlock(state)
-}
-
-function joinCampaign(state, ticket) {
-  handleApiCall(apiConnector.joinCampaign(state.player, ticket),
-      actions.CAMPAIGNS_KNOWN, actions.SHOW_ALERT)
-  return showApiBlock(state)
-}
-
-function campaignsKnown(state, playerCampaigns) {
-  playerCampaigns = playerCampaigns || []
-  const campaigns = playerCampaigns.map((pc) => 
-    Object.assign({}, pc.campaign, { can_manage: pc.can_manage }))
-  state = updateCampaigns(state, campaigns, true)
-  return unshowApiBlock(state)
-}
-
-function wantCharacters(state) {
-  if (!state.charactersKnown) {
-    let promise;
-    if (state.campaign.can_manage) {
-      promise = apiConnector.listCharactersForCampaign(state.campaign)
-    }
-    else {
-      promise = apiConnector.listCharactersForPlayerAndCampaign(state.player, state.campaign)
-    }
-    handleApiCall(promise, actions.CHARACTERS_KNOWN)
-    state = showApiBlock(state)
-  }
-  return wantCampaignTime(state)
-}
-
-function charactersKnown(state, characters) {
-  state = updateCharacters(state, characters, true)
-  return unshowApiBlock(state)
-}
-
-function updatePlayer(state, props) {
-  handleApiCall(apiConnector.updatePlayer(state.player, props.name), actions.PLAYER_UPDATED)
-  return showApiBlock(state)
-}
-
-function playerUpdated(state, player) {
-  state = updatePlayers(state, [ player ])
-  return unshowApiBlock(state)
-}
-
-function wantCampaignTime(state) {
-  return updateState(state, {
-    currentTime: { day: 15, hour: 23, minute: 1, second: 9 },
-    currentLocation: { shortName: "Somewhere" },
-    currentMelee: { who: "whose turn", whosNext: "===", round: 3 }
-  })
-}
-
-function updateCampaign(state, props) {
-  handleApiCall(apiConnector.updateCampaign(state.campaign, props.name), actions.CAMPAIGN_UPDATED)
-  return showApiBlock(state)
-}
-
-function campaignUpdated(state, campaign) {
-  state = updateCampaigns(state, [ campaign ])
-  return unshowApiBlock(state)
-}
-
-//=============================================
-
-function wantMap(state) {
-  if (!state.mapKnown) {
-    handleApiCall(apiConnector.getMapForCampaign(state.campaign), actions.MAP_KNOWN)
-  }
-  return wantCampaignTime(state)
-}
-
-function mapKnown(state, mapData) {
-  const bgHash = {}
-  const tokens = []
-  mapData.forEach((ele) => {
-    if (ele.layer == "bg") {
-      bgHash[ele.position] = ele.value
-    }
-    else {
-      tokens.push(ele)
-    }
-  })
-  return updateState(state, { bgMap: new BgMap(bgHash), tokens, mapKnown: true })
-}
-
-// Author the setting of a background value.
-function setBackground(state, props) {
-  if (state.bgMap && state.bgMap.setBgValue(props.hex.row, props.hex.col, props.value)) {
-    mapEventEmitter.emit("bgUpdate", props.hex)
-    echoConnector.broadcast({
-      type: "bg",
-      campaignId: state.campaign.id,
-      hex: ((hex) => ({ row: hex.row, col: hex.col }))(props.hex),
-      value: props.value
-    })
-  }
-  return state;
-}
-
-// Echo the setting of a background value.
-function echoBackground(state, props) {
-  if (state.bgMap && state.bgMap.setBgValue(props.hex.row, props.hex.col, props.value)) {
-    mapEventEmitter.emit("bgUpdate", props.hex)
-  }
-  return state;
-}
-
-// Author the placement of a new token.
-function placeToken(state, props) {
-  let tokens = state.tokens || [] 
-  const uuid = uuidv4()
-  const value = props.value;
-  const position = `${props.hex.row}:${props.hex.col}`;
-  let token = { uuid, position, value }
-  tokens = tokens.concat([ token ])
-  echoConnector.broadcast({
-    type: "token",
-    campaignId: state.campaign.id,
-    uuid, position, value
-  })
-  return updateState(state, { tokens })
-}
-
-// Author the placement of a counter.
-function modifyToken(state, props) {
-  let tokens = (state.tokens || []).slice()
-  tokens.forEach((token) => {
-    if (token.uuid == props.uuid) {
-      token.value = props.value || token.value;
-      token.position = props.position || token.position;
+  selectCampaign(state, campaign) {
+    const currentId = state.campaign ? state.campaign.id : null;
+    const newId = campaign ? campaign.id : null;
+    if (currentId !== newId) {
+      state = this.updateState(state, {
+        campaign,
+        characters: null,
+        charactersKnown: false,
+        bgMap: null,
+        mapKnown: false,
+        tokens: [],
+        selectedTool: "grabber",
+        counterValue: 1
+      })
       echoConnector.broadcast({
-        type: "token",
-        campaignId: state.campaign.id,
-        uuid: token.uuid,
-        position: token.position,
-        value: token.value
+        type: "uc",
+        campaignId: campaign.id
       })
     }
-  })
-  return updateState(state, { tokens })
-}
-
-// Author the modification of a counter.
-function placeCounter(state, props) {
-  const value = `${state.counterValue},${props.fillStyle}`
-  state = updateState(state, { counterValue: state.counterValue + 1 })
-  return placeToken(state, Object.assign({}, props, { value }))
-}
-
-// Echo the placement of a token.
-function echoToken(state, props) {
-  let found = false;
-  let tokens = (state.tokens || []).slice()
-  tokens.forEach((token) => {
-    if (token.uuid == props.uuid) {
-      token.value = props.value;
-      token.position = props.position;
-      found = true;
-    }
-  })
-  if (!found) {
-    const token = { uuid: props.uuid, position: props.position, value: props.value }
-    tokens = tokens.concat([ token ])
+    return state;
   }
-  return updateState(state, { tokens })
+  deselectCampaign(state, campaign) {
+    return this.selectCampaign(state, null)
+  }
+  createPlayer(state, props) {
+    this.handleApiCall(apiConnector.createPlayerForUser(state.user, props.name), actions.PLAYER_CREATED)
+    return this.showApiBlock(state)
+  }
+  playerCreated(state, player) {
+    state = this.updatePlayers(state, [ player ])
+    state = this.selectPlayer(state, player)
+    return this.unshowApiBlock(state)
+  }
+  createCampaign(state, props) {
+    this.handleApiCall(apiConnector.createCampaignForPlayer(state.player, props.name),
+                  actions.CAMPAIGN_CREATED)
+    return this.showApiBlock(state)
+  }
+  campaignCreated(state, campaign) {
+    // Synthesize the annotated campaign element.
+    campaign = Object.assign(campaign, { creator: state.player, can_manage: true })
+    state = this.updateCampaigns(state, [ campaign ])
+    return this.unshowApiBlock(state)
+  }
+  createCharacter(state, props) {
+    this.handleApiCall(apiConnector.createPlayerCharacter(state.player, state.campaign, props.name),
+                  actions.CHARACTER_CREATED)
+    return this.showApiBlock(state)
+  }
+  characterCreated(state, character) {
+    state = this.updateCharacters(state, [ character ])
+    return this.unshowApiBlock(state)
+  }
+  showError(state, errorMessage) {
+    state = this.updateState(state, { errorMessage })
+    return this.unshowApiBlock(state)
+  }
+  showAlert(state, alertMessage) {
+    state = this.updateState(state, { alertMessage })
+    return this.unshowApiBlock(state)
+  }
+  whoAmI(state) {
+    this.handleApiCall(apiConnector.whoAmI(), actions.USER_KNOWN, actions.LOGIN)
+    return this.showApiBlock(state)
+  }
+  userKnown(state, user) {
+    let userName = state.userName;
+    if (!userName) {
+      userName = user.first_name || user.email || user.username;
+    }
+    return this.listPlayersForUser(this.updateState(state, { user, userName }))
+  }
+  listPlayersForUser(state) {
+    this.handleApiCall(apiConnector.listPlayersForUser(state.user), actions.PLAYERS_KNOWN)
+    return this.showApiBlock(state)
+  }
+  playersKnown(state, players) {
+    state = this.updatePlayers(state, players, true)
+    return this.unshowApiBlock(state)
+  }
+  listCampaignsForPlayer(state) {
+    this.handleApiCall(apiConnector.listCampaignsForPlayer(state.player), actions.CAMPAIGNS_KNOWN)
+    return this.showApiBlock(state)
+  }
+  joinCampaign(state, props) {
+    this.handleApiCall(apiConnector.joinCampaign(state.player, props.ticket),
+        actions.CAMPAIGNS_KNOWN, actions.SHOW_ALERT)
+    return this.showApiBlock(state)
+  }
+  campaignsKnown(state, playerCampaigns) {
+    playerCampaigns = playerCampaigns || []
+    const campaigns = playerCampaigns.map((pc) => 
+      Object.assign({}, pc.campaign, { can_manage: pc.can_manage }))
+    state = this.updateCampaigns(state, campaigns, true)
+    return this.unshowApiBlock(state)
+  }
+  wantCharacters(state) {
+    if (!state.charactersKnown) {
+      let promise;
+      if (state.campaign.can_manage) {
+        promise = apiConnector.listCharactersForCampaign(state.campaign)
+      }
+      else {
+        promise = apiConnector.listCharactersForPlayerAndCampaign(state.player, state.campaign)
+      }
+      this.handleApiCall(promise, actions.CHARACTERS_KNOWN)
+      state = this.showApiBlock(state)
+    }
+    return this.wantCampaignTime(state)
+  }
+  charactersKnown(state, characters) {
+    state = this.updateCharacters(state, characters, true)
+    return this.unshowApiBlock(state)
+  }
+  updatePlayer(state, props) {
+    this.handleApiCall(apiConnector.updatePlayer(state.player, props.name), actions.PLAYER_UPDATED)
+    return this.showApiBlock(state)
+  }
+  playerUpdated(state, player) {
+    state = this.updatePlayers(state, [ player ])
+    return this.unshowApiBlock(state)
+  }
+  wantCampaignTime(state) {
+    return this.updateState(state, {
+      currentTime: { day: 15, hour: 23, minute: 1, second: 9 },
+      currentLocation: { shortName: "Somewhere" },
+      currentMelee: { who: "whose turn", whosNext: "===", round: 3 }
+    })
+  }
+  updateCampaign(state, props) {
+    this.handleApiCall(apiConnector.updateCampaign(state.campaign, props.name), actions.CAMPAIGN_UPDATED)
+    return this.showApiBlock(state)
+  }
+  campaignUpdated(state, campaign) {
+    state = this.updateCampaigns(state, [ campaign ])
+    return this.unshowApiBlock(state)
+  }
+  wantMap(state) {
+    if (!state.mapKnown) {
+      this.handleApiCall(apiConnector.getMapForCampaign(state.campaign), actions.MAP_KNOWN)
+    }
+    return this.wantCampaignTime(state)
+  }
+  mapKnown(state, mapData) {
+    const bgHash = {}
+    const tokens = []
+    mapData.forEach((ele) => {
+      if (ele.layer == "bg") {
+        bgHash[ele.position] = ele.value
+      }
+      else {
+        tokens.push(ele)
+      }
+    })
+    return this.updateState(state, { bgMap: new BgMap(bgHash), tokens, mapKnown: true })
+  }
+  // Author the setting of a background value.
+  setBackground(state, props) {
+    if (state.bgMap && state.bgMap.setBgValue(props.hex.row, props.hex.col, props.value)) {
+      mapEventEmitter.emit("bgUpdate", props.hex)
+      echoConnector.broadcast({
+        type: "bg",
+        campaignId: state.campaign.id,
+        hex: ((hex) => ({ row: hex.row, col: hex.col }))(props.hex),
+        value: props.value
+      })
+    }
+    return state;
+  }
+  // Echo the setting of a background value.
+  echoBackground(state, props) {
+    if (state.bgMap && state.bgMap.setBgValue(props.hex.row, props.hex.col, props.value)) {
+      mapEventEmitter.emit("bgUpdate", props.hex)
+    }
+    return state;
+  }
+  // Author the placement of a new token.
+  placeToken(state, props) {
+    let tokens = state.tokens || [] 
+    const uuid = uuidv4()
+    const value = props.value;
+    const position = `${props.hex.row}:${props.hex.col}`;
+    let token = { uuid, position, value }
+    tokens = tokens.concat([ token ])
+    echoConnector.broadcast({
+      type: "token",
+      campaignId: state.campaign.id,
+      uuid, position, value
+    })
+    return this.updateState(state, { tokens })
+  }
+  // Author the placement of a counter.
+  modifyToken(state, props) {
+    let tokens = (state.tokens || []).slice()
+    tokens.forEach((token) => {
+      if (token.uuid == props.uuid) {
+        token.value = props.value || token.value;
+        token.position = props.position || token.position;
+        echoConnector.broadcast({
+          type: "token",
+          campaignId: state.campaign.id,
+          uuid: token.uuid,
+          position: token.position,
+          value: token.value
+        })
+      }
+    })
+    return this.updateState(state, { tokens })
+  }
+  // Author the modification of a counter.
+  placeCounter(state, props) {
+    const value = `${state.counterValue},${props.fillStyle}`
+    state = this.updateState(state, { counterValue: state.counterValue + 1 })
+    return this.placeToken(state, Object.assign({}, props, { value }))
+  }
+  // Echo the placement of a token.
+  echoToken(state, props) {
+    let found = false;
+    let tokens = (state.tokens || []).slice()
+    tokens.forEach((token) => {
+      if (token.uuid == props.uuid) {
+        token.value = props.value;
+        token.position = props.position;
+        found = true;
+      }
+    })
+    if (!found) {
+      const token = { uuid: props.uuid, position: props.position, value: props.value }
+      tokens = tokens.concat([ token ])
+    }
+    return this.updateState(state, { tokens })
+  }
+  selectTool(state, selectedTool) {
+    return this.updateState(state, { selectedTool })
+  }
+  updatePlayers(state, datalist, complete = false) {
+    state = this.updateDictionary(state, "players", datalist, complete);
+    let player = state.player && state.players[state.player.id.toString()]
+    let userName = player ? player.name : state.userName;
+    return this.updateState(state, { player, userName })
+  }
+  updateCampaigns(state, datalist, complete = false) {
+    state = this.updateDictionary(state, "campaigns", datalist, complete);
+    let campaign = state.campaign && state.campaigns[state.campaign.id.toString()]
+    return this.updateState(state, { campaign })
+  }
+  updateCharacters(state, datalist, complete = false) {
+    return this.updateDictionary(state, "characters", datalist, complete);
+  }
+  updateDictionary(state, key, datalist, complete) {
+    if (!datalist) datalist = []
+    let newDict = Object.assign({}, state[key])
+    datalist.forEach((ele) => {
+      const key = ele.id.toString()
+      newDict[key] = Object.assign({}, newDict[key], ele)
+    })
+    let newState = {}
+    newState[key] = newDict;
+    if (complete) newState[key + "Known"] = true;
+    return this.updateState(state, newState)
+  }
+  updateState(state, newProps) {
+    return Object.assign({}, state, newProps)
+  }
+  showApiBlock(state) {
+    return this.updateState(state, { apiblocked: true })
+  }
+  unshowApiBlock(state) {
+    return this.updateState(state, { apiblocked: false })
+  }
+  handleApiCall(promise, successActionType, errorActionType=actions.SHOW_ERROR) {
+    promise
+      .then((response) => {
+        store.dispatch({ type: successActionType, data: response.data })
+      })
+      .catch((error) => {
+        let message;
+        if (error.response) {
+          if (DEBUG) console.log(error.response);
+          if (error.response.status == 500) {
+            message = "Unexpected server error."
+          }
+          else if (error.response.data) {
+            if (error.response.data.detail) {
+              message = error.response.data.detail;
+            }
+          }
+        }
+        store.dispatch({
+          type: errorActionType,
+          message: message || error.toString()
+        })
+      })
+  }
+  login(state) {
+    window.location.href = "/login";
+    return state;
+  }
 }
-
-function selectTool(state, selectedTool) {
-  return updateState(state, { selectedTool })
-}
-
-//=============================================
-// HELPERS
 
 class BgMap {
   constructor(data) {
@@ -423,69 +344,41 @@ class BgMap {
   }
 }
 
-function updatePlayers(state, datalist, complete = false) {
-  state = updateDictionary(state, "players", datalist, complete);
-  let player = state.player && state.players[state.player.id.toString()]
-  let userName = player ? player.name : state.userName;
-  return updateState(state, { player, userName })
-}
+const reducerDispatcher = new ReducerDispatcherPrime()
 
-function updateCampaigns(state, datalist, complete = false) {
-  state = updateDictionary(state, "campaigns", datalist, complete);
-  let campaign = state.campaign && state.campaigns[state.campaign.id.toString()]
-  return updateState(state, { campaign })
-}
+// State properties:
+// .campaigns             A hash of campaigns for the current player, indexed by ID string.
+// .campaignsKnown        True if .campaigns is completely loaded for the current player.
+// .characters            A hash of characters for the current campaign, indexed by ID string.
+// .charactersKnown       True if .characters is completely loaded for the current player and
+//                        campaign.
+// .players               A hash of players for the current user, indexed by ID string.
+// .playersKnown          True if .players is completely loaded for the current user.
+// .user                  The current user.
 
-function updateCharacters(state, datalist, complete = false) {
-  return updateDictionary(state, "characters", datalist, complete);
-}
+export const store = createStore((state = 0, action) => {
+  if (DEBUG) console.log("ACTION", state, action)
+  if (!action.type) throw "null action type";
+  const reducerFunction = reducerDispatcher[action.type]
+  if (typeof reducerFunction == "function") {
+    return reducerFunction.apply(reducerDispatcher, [
+        state,
+        action.props || action.data || action.player || action.campaign ||
+        action.message || action.tools 
+    ])
+  }
+  if (DEBUG) console.log("warning: action unhandled")
+  return state || {};
+})
 
-function updateDictionary(state, key, datalist, complete) {
-  if (!datalist) datalist = []
-  let newDict = Object.assign({}, state[key])
-  datalist.forEach((ele) => {
-    const key = ele.id.toString()
-    newDict[key] = Object.assign({}, newDict[key], ele)
-  })
-  let newState = {}
-  newState[key] = newDict;
-  if (complete) newState[key + "Known"] = true;
-  return updateState(state, newState)
-}
+store.subscribe(() => DEBUG && console.log("NEW STATE", store.getState()))
+store.dispatch({ type: actions.START_APP })
 
-function updateState(state, newProps) {
-  return Object.assign({}, state, newProps)
-}
-
-function showApiBlock(state) {
-  return updateState(state, { apiblocked: true })
-}
-
-function unshowApiBlock(state) {
-  return updateState(state, { apiblocked: false })
-}
-
-function handleApiCall(promise, successActionType, errorActionType=actions.SHOW_ERROR) {
-  promise
-    .then((response) => {
-      store.dispatch({ type: successActionType, data: response.data })
-    })
-    .catch((error) => {
-      let message;
-      if (error.response) {
-        if (DEBUG) console.log(error.response);
-        if (error.response.status == 500) {
-          message = "Unexpected server error."
-        }
-        else if (error.response.data) {
-          if (error.response.data.detail) {
-            message = error.response.data.detail;
-          }
-        }
-      }
-      store.dispatch({
-        type: errorActionType,
-        message: message || error.toString()
-      })
-    })
-}
+echoConnector.on("app.bg", (props) => {
+  if (DEBUG) console.log("app.bg received", props)
+  store.dispatch({ type: actions.ECHO_BACKGROUND, props });
+})
+echoConnector.on("app.token", (props) => {
+  if (DEBUG) console.log("app.token received", props)
+  store.dispatch({ type: actions.ECHO_TOKEN, props });
+})
