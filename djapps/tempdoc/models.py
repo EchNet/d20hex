@@ -51,9 +51,8 @@ class MapElement(models.Model):
       verbose_name=_("position"),
   )
 
-  value = models.CharField(
+  value = models.TextField(
       blank=False,
       null=False,
-      max_length=VALUE_MAX_LENGTH,
       verbose_name=_("value"),
   )
