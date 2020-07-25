@@ -157,7 +157,7 @@ export class Map extends React.Component {
   }
   get selectedTool() {
     if (this.props.selectedTool) {
-      return this.props.selectedTool.split(":")
+      return this.props.selectedTool.split("|")
     }
     return [""]
   }

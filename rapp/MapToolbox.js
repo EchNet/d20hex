@@ -53,7 +53,7 @@ export class MapToolbox extends React.Component {
   }
   renderBgTool() {
     const currentFillStyle = this.state.bgFillStyles[this.state.bgFillStyleIndex]
-    const toolName = `bg:${currentFillStyle}`
+    const toolName = `bg|${currentFillStyle}`
     return (
       <div className="tool-wrapper">
         <div className="left-arrow" onClick={() => this.handleBgToolRotate(-1)}>{"<"}</div>
@@ -70,7 +70,7 @@ export class MapToolbox extends React.Component {
     this.setState({ bgFillStyleIndex: newFillStyleIndex })
     if (this.props.selectedTool.startsWith("bg")) {
       const newFillStyle = this.state.bgFillStyles[newFillStyleIndex]
-      const toolName = `bg:${newFillStyle}`
+      const toolName = `bg|${newFillStyle}`
       this.selectNewTool(toolName)
     }
   }
@@ -85,11 +85,11 @@ export class MapToolbox extends React.Component {
             style={{
                 color: "white",
                 backgroundColor: currentFillStyle,
-                width: "32px",
-                height: "32px",
-                lineHeight: `${28 - digits*2}px`,
+                width: "28px",
+                height: "28px",
+                lineHeight: `${25 - digits*2}px`,
                 borderRadius: "50%",
-                fontSize: `${25 - digits*2}px`,
+                fontSize: `${23 - digits*2}px`,
                 textAlign: "center"
             }}>
           { this.props.counterValue }
@@ -104,7 +104,7 @@ export class MapToolbox extends React.Component {
     this.setState({ counterFillStyleIndex: newFillStyleIndex })
     if (this.props.selectedTool && this.props.selectedTool.startsWith("counter")) {
       const newFillStyle = this.state.counterFillStyles[newFillStyleIndex]
-      const toolName = `counter:${newFillStyle}`;
+      const toolName = `counter|${newFillStyle}`;
       this.selectNewTool(toolName)
     }
   }
@@ -135,12 +135,12 @@ export class MapToolbox extends React.Component {
     this.setState({ tokenFillStyleIndex: newFillStyleIndex })
     if (this.props.selectedTool.startsWith("token")) {
       const newFillStyle = this.state.tokenFillStyles[newFillStyleIndex]
-      const toolName = `token:${newFillStyle}`;
+      const toolName = `token|${newFillStyle}`;
       this.selectNewTool(toolName)
     }
   }
   classifyTool(name1, name2 = null) {
-    const toolName = name2 ? `${name1}:${name2}` : name1;
+    const toolName = name2 ? `${name1}|${name2}` : name1;
     let className = `tool ${name1}`;
     if (name2 == "white") {
       className = `${className} white`;
