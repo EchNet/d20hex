@@ -1,5 +1,6 @@
 import * as React from "react"
-import { connect } from 'react-redux';
+import { connect } from "react-redux";
+import { Link } from "react-router-dom";
 
 import { apiConnector } from "./connectors"
 import actions from "./actions"
@@ -48,8 +49,10 @@ export class CampaignView extends React.Component {
               <MenuItem onClick={() => this.showAdminView()}>
                 Admin
               </MenuItem> }
-            <MenuItem onClick={() => this.backToLobby()}>
-              Exit Campaign
+            <MenuItem onClick={() => this.closeCampaign()}>
+              <Link to="/">
+                Exit Campaign
+              </Link>
             </MenuItem>
           </Menu>
         </div>
@@ -67,7 +70,7 @@ export class CampaignView extends React.Component {
   showAdminView() {
     this.setState({ actionViewShown: false, charactersViewShown: false, adminViewShown: true })
   }
-  backToLobby() {
+  closeCampaign() {
     this.props.dispatch({ type: actions.CLOSE_CAMPAIGN })
   }
 }

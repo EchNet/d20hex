@@ -44,3 +44,10 @@
   background-color: #666;
   color: white;
 }
+.MenuItem a {
+  color: black;
+}
+.MenuItem:hover a {
+  color: white;
+  text-decoration: none;
+}
