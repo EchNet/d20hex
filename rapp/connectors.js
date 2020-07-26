@@ -92,6 +92,9 @@ class ApiConnector {
   getMapForCampaign(campaign) {
     return this._doGet(`/api/1.0/campaign/${campaign.id}/map`)
   }
+  getNotesForCampaign(campaign) {
+    return this._doGet(`/api/1.0/campaign/${campaign.id}/notes`)
+  }
 }
 
 class EchoConnector extends EventEmitter {

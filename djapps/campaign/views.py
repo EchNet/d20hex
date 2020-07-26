@@ -18,6 +18,7 @@ from .permissions import (IsSuperuser, IsPlayerOwner)
 from .serializers import (
     CampaignSerializer,
     NewCampaignSerializer,
+    NoteSerializer,
     PlayerCampaignMembershipSerializer,
     TempDocSerializer,
 )
@@ -129,3 +130,12 @@ class CampaignMapView(generics.ListAPIView):
     campaign_id = self.kwargs.get("campaign_id")
     campaign = get_object_or_404(Campaign.objects.all(), id=campaign_id)
     return campaign.map_elements.all()
+
+
+class CampaignNotesView(generics.ListAPIView):
+  serializer_class = NoteSerializer
+
+  def get_queryset(self):
+    campaign_id = self.kwargs.get("campaign_id")
+    campaign = get_object_or_404(Campaign.objects.all(), id=campaign_id)
+    return campaign.notes.all().order_by("created_on")

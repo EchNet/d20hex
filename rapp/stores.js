@@ -10,7 +10,72 @@ let DEBUG = config("DEBUG");
 
 export const mapEventEmitter = new EventEmitter()
 
-class ReducerDispatcherPrime {
+class NavReducerDispatcher {
+  login() {
+    window.location.href = "/login";
+  }
+}
+
+class BaseReducerDispatcher {
+  constructor(store) {
+    this._store = store
+  }
+  get store() {
+    return this._store
+  }
+  updateState(state, newProps) {
+    return Object.assign({}, state, newProps)
+  }
+  handleApiCall(promise, successActionType, errorActionType=actions.SHOW_ERROR) {
+    promise
+      .then((response) => {
+        this.store.dispatch({ type: successActionType, data: response.data })
+      })
+      .catch((error) => {
+        let message;
+        if (error.response) {
+          if (DEBUG) console.log(error.response);
+          if (error.response.status == 500) {
+            message = "Unexpected server error."
+          }
+          else if (error.response.data) {
+            if (error.response.data.detail) {
+              message = error.response.data.detail;
+            }
+          }
+        }
+        this.store.dispatch({
+          type: errorActionType,
+          message: message || error.toString()
+        })
+      })
+  }
+}
+
+class CampaignNotesReducerDispatcher extends BaseReducerDispatcher {
+  selectCampaign(state, campaign) {
+    if (!campaign) {
+      return this.updateState(state, { campaignNotes: null })
+    }
+    const currentId = state.campaignNotes && state.campaignNotes.campaign.id;
+    if (campaign.id !== currentId) {
+      this.handleApiCall(apiConnector.getNotesForCampaign(campaign), actions.NOTES_KNOWN)
+      return this.updateState(state, { campaignNotes: { campaign, known: false }})
+    }
+    return state;
+  }
+  notesKnown(state, data) {
+    const notes = {}
+    data.forEach((noteData) => {
+      notes[noteData.topic] = noteData;
+    })
+    return this.updateState(state, {
+      campaignNotes: { campaign: state.campaign, known: true, notes }
+    })
+  }
+}
+
+class ReducerDispatcherPrime extends BaseReducerDispatcher {
   startApp(state) {
     return this.whoAmI(state);
   }
@@ -134,7 +199,9 @@ class ReducerDispatcherPrime {
       this.handleApiCall(promise, actions.CHARACTERS_KNOWN)
       state = this.showApiBlock(state)
     }
-    return this.wantCampaignTime(state)
+    // TEMP
+    state = this.updateState(state, { currentMelee: { who: "whose turn", whosNext: "===", round: 3 }})
+    return state;
   }
   charactersKnown(state, characters) {
     state = this.updateCharacters(state, characters, true)
@@ -148,13 +215,6 @@ class ReducerDispatcherPrime {
     state = this.updatePlayers(state, [ player ])
     return this.unshowApiBlock(state)
   }
-  wantCampaignTime(state) {
-    return this.updateState(state, {
-      currentTime: { day: 15, hour: 23, minute: 1, second: 9 },
-      currentLocation: { shortName: "Somewhere" },
-      currentMelee: { who: "whose turn", whosNext: "===", round: 3 }
-    })
-  }
   updateCampaign(state, props) {
     this.handleApiCall(apiConnector.updateCampaign(state.campaign, props.name), actions.CAMPAIGN_UPDATED)
     return this.showApiBlock(state)
@@ -167,7 +227,7 @@ class ReducerDispatcherPrime {
     if (!state.mapKnown) {
       this.handleApiCall(apiConnector.getMapForCampaign(state.campaign), actions.MAP_KNOWN)
     }
-    return this.wantCampaignTime(state)
+    return state
   }
   mapKnown(state, mapData) {
     const bgHash = {}
@@ -287,42 +347,11 @@ class ReducerDispatcherPrime {
     if (complete) newState[key + "Known"] = true;
     return this.updateState(state, newState)
   }
-  updateState(state, newProps) {
-    return Object.assign({}, state, newProps)
-  }
   showApiBlock(state) {
     return this.updateState(state, { apiblocked: true })
   }
   unshowApiBlock(state) {
     return this.updateState(state, { apiblocked: false })
-  }
-  handleApiCall(promise, successActionType, errorActionType=actions.SHOW_ERROR) {
-    promise
-      .then((response) => {
-        store.dispatch({ type: successActionType, data: response.data })
-      })
-      .catch((error) => {
-        let message;
-        if (error.response) {
-          if (DEBUG) console.log(error.response);
-          if (error.response.status == 500) {
-            message = "Unexpected server error."
-          }
-          else if (error.response.data) {
-            if (error.response.data.detail) {
-              message = error.response.data.detail;
-            }
-          }
-        }
-        store.dispatch({
-          type: errorActionType,
-          message: message || error.toString()
-        })
-      })
-  }
-  login(state) {
-    window.location.href = "/login";
-    return state;
   }
 }
 
@@ -344,8 +373,6 @@ class BgMap {
   }
 }
 
-const reducerDispatcher = new ReducerDispatcherPrime()
-
 // State properties:
 // .campaigns             A hash of campaigns for the current player, indexed by ID string.
 // .campaignsKnown        True if .campaigns is completely loaded for the current player.
@@ -356,23 +383,28 @@ const reducerDispatcher = new ReducerDispatcherPrime()
 // .playersKnown          True if .players is completely loaded for the current user.
 // .user                  The current user.
 
+let reducerDispatchers = []
 export const store = createStore((state = 0, action) => {
   if (DEBUG) console.log("ACTION", state, action)
-  if (!action.type) throw "null action type";
-  const reducerFunction = reducerDispatcher[action.type]
-  if (typeof reducerFunction == "function") {
-    return reducerFunction.apply(reducerDispatcher, [
-        state,
-        action.props || action.data || action.player || action.campaign ||
-        action.message || action.tools 
-    ])
-  }
-  if (DEBUG) console.log("warning: action unhandled")
-  return state || {};
+  state = state || {}
+  let reducerCount = 0;
+  reducerDispatchers.forEach((reducerDispatcher) => {
+    const reducerFunction = reducerDispatcher[action.type]
+    if (typeof reducerFunction == "function") {
+      const newState = reducerFunction.apply(reducerDispatcher, [
+          state,
+          action.props || action.data || action.player || action.campaign ||
+          action.message || action.tools 
+      ])
+      if (newState !== undefined) state = newState;
+      reducerCount += 1;
+    }
+  })
+  if (DEBUG && reducerCount == 0) console.log("warning: action unhandled")
+  return state;
 })
 
 store.subscribe(() => DEBUG && console.log("NEW STATE", store.getState()))
-store.dispatch({ type: actions.START_APP })
 
 echoConnector.on("app.bg", (props) => {
   if (DEBUG) console.log("app.bg received", props)
@@ -382,3 +414,10 @@ echoConnector.on("app.token", (props) => {
   if (DEBUG) console.log("app.token received", props)
   store.dispatch({ type: actions.ECHO_TOKEN, props });
 })
+
+reducerDispatchers = reducerDispatchers.concat([
+  new NavReducerDispatcher(),
+  new CampaignNotesReducerDispatcher(store),
+  new ReducerDispatcherPrime(store)
+])
+store.dispatch({ type: actions.START_APP })
