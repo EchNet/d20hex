@@ -1,0 +1,44 @@
+.PaletteGroup {
+  width: 42px;
+  height: 39px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  border-left: solid 2px white;
+  border-right: solid 2px white;
+}
+.PaletteGroup.selected {
+  border-left: solid 2px red;
+  border-right: solid 2px red;
+}
+.PaletteGroup:hover {
+  overflow: visible;
+}
+.PaletteGroup .slideOut {
+  height: 40px;
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  border-radius: 6px;
+  background-color: white;
+}
+.PaletteGroup:hover .slideOut {
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+.PaletteGroup .slideOut .cell {
+  margin: 2px;
+  width: 34px;
+  height: 34px;
+  border: solid 1px white;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 28px;
+  line-height: 30px;
+  color: white;
+}
+.PaletteGroup .slideOut .cell.white {
+  border-color: #ccc;
+}
+.PaletteGroup .slideOut .cell:hover {
+  border-color: red;
+}
