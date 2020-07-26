@@ -95,6 +95,14 @@ class ApiConnector {
   getNotesForCampaign(campaign) {
     return this._doGet(`/api/1.0/campaign/${campaign.id}/notes`)
   }
+  createNote(campaign, topic, json, text) {
+    return this._doPost(`/api/1.0/player`, {
+        "campaign": campaign.id,
+        "topic": topic,
+        "json": json,
+        "text": text
+    })
+  }
 }
 
 class EchoConnector extends EventEmitter {

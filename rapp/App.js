@@ -124,7 +124,7 @@ class CampaignPathView extends React.Component {
   }
   selectCampaign() {
     if (this.props.campaignsKnown) {
-      if (!this.props.campaign || this.props.campaign.id !== this.matchingCampaignId) {
+      if (!this.props.campaign || this.props.campaign.id !== this.matchedCampaignId) {
         const campaign = this.findCampaign()
         if (campaign) {
           this.props.dispatch({ type: actions.SELECT_CAMPAIGN, campaign })

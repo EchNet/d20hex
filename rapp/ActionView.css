@@ -40,6 +40,7 @@
   position: absolute;
   padding: 30px;
   border-top: ridge 3px #cccccc;
+  z-index: 3;
 }
 .ActionView .dayValue {
   color: #aa2aaa;

@@ -58,11 +58,16 @@ class CampaignNotesReducerDispatcher extends BaseReducerDispatcher {
       return this.updateState(state, { campaignNotes: null })
     }
     const currentId = state.campaignNotes && state.campaignNotes.campaign.id;
+    this.requestNotes(campaign)
     if (campaign.id !== currentId) {
-      this.handleApiCall(apiConnector.getNotesForCampaign(campaign), actions.NOTES_KNOWN)
       return this.updateState(state, { campaignNotes: { campaign, known: false }})
     }
-    return state;
+  }
+  wantNotes(state) {
+    this.requestNotes(state.campaign)
+  }
+  requestNotes(campaign) {
+    this.handleApiCall(apiConnector.getNotesForCampaign(campaign), actions.NOTES_KNOWN)
   }
   notesKnown(state, data) {
     const notes = {}

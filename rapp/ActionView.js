@@ -30,10 +30,10 @@ export class ActionView extends React.Component {
             { this.renderMeleeTab(this.props.currentMelee) }
           </div>
           <div>
-            { this.renderTimeTab(this.props.currentTime) }
+            { this.renderTimeTab() }
           </div>
           <div>
-            { this.renderLocationTab(this.props.currentLocation) }
+            { this.renderLocationTab() }
           </div>
           { !!this.props.campaign.can_manage && <MapToolbox/> }
         </div>
@@ -71,7 +71,8 @@ export class ActionView extends React.Component {
       </div>
     )
   }
-  renderTimeTab(t) {
+  renderTimeTab() {
+    const t = this.props.campaignNotes && this.props.campaignNotes.notes && this.props.campaignNotes.notes.time;
     return (
       <div className="tabCardContainer">
         <div className="tab" onClick={() => this.toggleState("timeCardShown")}>
@@ -82,32 +83,59 @@ export class ActionView extends React.Component {
             { this.state.timeCardShown ? "unfold_less" : "unfold_more" }
           </i>
         </div>
-        { this.state.timeCardShown && this.renderTimeCard(t) }
+        { this.state.timeCardShown && this.renderTimeCard() }
       </div>
     )
   }
-  renderLocationTab(l) {
+  renderLocationTab() {
+    const l = this.props.campaignNotes && this.props.campaignNotes.notes && this.props.campaignNotes.notes.location;
     return (
       <div className="tabCardContainer">
         <div className="tab" onClick={() => this.toggleState("locationCardShown")}>
           { !!l && <span className="whereValue">{l.shortName}</span> }
           { !l && <span>(No location set)</span> }
           <i className="material-icons">
-            { this.state.timeCardShown ? "unfold_less" : "unfold_more" }
+            { this.state.locationCardShown ? "unfold_less" : "unfold_more" }
           </i>
         </div>
         { this.state.locationCardShown && this.renderLocationCard(l) }
       </div>
     )
   }
-  renderTimeCard(t) {
-    return (<div className="card">PLACEHOLDER</div>)
+  renderTimeCard() {
+    return (
+      <div className="card">
+        { this.renderNoteForm("time") }
+      </div>
+    )
   }
   renderMeleeCard(m) {
     return (<div className="card">PLACEHOLDER</div>)
   }
-  renderLocationCard(l) {
-    return (<div className="card">PLACEHOLDER</div>)
+  renderLocationCard() {
+    return (
+      <div className="card">
+        { this.renderNoteForm("location") }
+      </div>
+    )
+  }
+  renderNoteForm(topic) {
+    return (
+      <div className="noteForm">
+        <form onSubmit={(event) => this.handleNoteFormSubmit(topic, event)}>
+          <div>Topic: {topic}</div>
+          <input type="hidden" name="topic" value={topic} />
+          <div><textarea name="json"/></div>
+          <div><textarea name="text"/></div>
+          <input type="submit"/>
+        </form>
+      </div>
+    )
+  }
+  handleNoteFormSubmit(event) {
+    event.preventDefault();
+    this.setState({ locationCardShown: false, timeCardShown: false, meleeCardShown: false });
+    this.props.dispatch({ type: actions.CREATE_NOTE, data: event.form })
   }
   toggleState(key) {
     this.setState((oldState) => {
