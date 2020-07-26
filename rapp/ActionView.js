@@ -35,7 +35,7 @@ export class ActionView extends React.Component {
           <div>
             { this.renderLocationTab(this.props.currentLocation) }
           </div>
-          <MapToolbox/>
+          { !!this.props.campaign.can_manage && <MapToolbox/> }
         </div>
         <Map/>
       </div>
