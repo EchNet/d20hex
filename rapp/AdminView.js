@@ -1,7 +1,7 @@
 import * as React from "react"
 import { connect } from 'react-redux';
 
-import { apiConnector } from "./connectors"
+import apiConnector from "./connectors/api"
 import SingleTextValueForm from "./SingleTextValueForm"
 import actions from "./actions"
 import "./AdminView.css"

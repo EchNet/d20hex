@@ -1,7 +1,8 @@
 import { createStore } from "redux"
 import EventEmitter from "eventemitter3"
 
-import { apiConnector, echoConnector } from "./connectors"
+import apiConnector from "./connectors/api"
+import echoConnector from "./connectors/echo"
 import actions from "./actions"
 import config from "./config"
 import BaseReducerDispatcher from "./reducers/base"
@@ -231,6 +232,9 @@ export const store = createStore((state = 0, action) => {
 
 store.subscribe(() => DEBUG && console.log("NEW STATE", store.getState()))
 
+echoConnector.on("socket.disconnect", () => {
+  store.dispatch({ type: actions.SHOW_ERROR, data: "Oops, lost connection to server." });
+})
 echoConnector.on("app.bg", (props) => {
   if (DEBUG) console.log("app.bg received", props)
   store.dispatch({ type: actions.ECHO_BACKGROUND, props });

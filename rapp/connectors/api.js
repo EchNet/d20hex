@@ -1,10 +1,5 @@
 import axios from "axios"
 import ImportedCookies from "cookies-js"
-import { w3cwebsocket as WebSocket } from "websocket"
-import EventEmitter from "eventemitter3"
-import config from "./config"
-
-let DEBUG = config("DEBUG");
 
 function toQueryString(params) {
   return Object.keys(params).map(
@@ -15,8 +10,8 @@ function toQueryString(params) {
 class ApiConnector {
   constructor(props) {
     this.props = props || {}
-    this.jwt = ImportedCookies.get("jwt")
-    this.jwt_tob = Number(ImportedCookies.get("jwt_tob"))
+    //this.jwt = ImportedCookies.get("jwt")
+    //this.jwt_tob = Number(ImportedCookies.get("jwt_tob"))
   }
   _doGet(uri, data={}) {
     const salt = Math.random().toString(16).substring(2)
@@ -105,45 +100,5 @@ class ApiConnector {
   }
 }
 
-class EchoConnector extends EventEmitter {
-  static getEndpoint() {
-    const scheme = window.location.protocol == "https:" ? "wss" : "ws";
-    return scheme + "://" + window.location.host + "/ws/map/";
-  }
-  open() {
-    // TODO: authorization
-    if (this.client && this.client.readyState == WebSocket.OPEN) {
-      return Promise.resolve(this.client)
-    }
-    if (!this.openPromise) {
-      this.openPromise = new Promise((resolve, reject) => {
-        const endpoint = EchoConnector.getEndpoint()
-        this.client = new WebSocket(endpoint)
-        this.client.onopen = () => {
-          this.openPromise = null;
-          this.emit("socket.connect")
-          resolve(this.client)
-        }
-        this.client.onclose = () => {
-          this.emit("socket.disconnect")
-        }
-        this.client.onmessage = (message) => {
-          if (DEBUG) console.log("MESSAGE RECEIVED", message)
-          const data = JSON.parse(message.data)
-          this.emit(`app.${data.type}`, data)
-        }
-      })
-    }
-    return this.openPromise;
-  }
-  broadcast(event) {
-    if (DEBUG) console.log("TO BE BROADCAST", event)
-    this.open().then((client) => {
-      if (DEBUG) console.log("BROADCASTING", event)
-      client.send(JSON.stringify(event))
-    })
-  }
-}
-
 export const apiConnector = new ApiConnector()
-export const echoConnector = new EchoConnector()
+export default apiConnector;

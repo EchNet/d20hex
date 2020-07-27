@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 
 import actions from "../actions"
-import { apiConnector, echoConnector } from "../connectors"
+import apiConnector from "../connectors/api"
+import echoConnector from "../connectors/echo"
 import BaseReducerDispatcher from "./base";
 
 export class MapReducerDispatcher extends BaseReducerDispatcher {

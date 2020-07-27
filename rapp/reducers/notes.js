@@ -1,5 +1,5 @@
 import actions from "../actions"
-import { apiConnector } from "../connectors"
+import apiConnector from "../connectors/api"
 import BaseReducerDispatcher from "./base";
 
 export class NotesReducerDispatcher extends BaseReducerDispatcher {

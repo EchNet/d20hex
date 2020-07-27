@@ -2,7 +2,7 @@ import * as React from "react"
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 
-import { apiConnector } from "./connectors"
+import apiConnector from "./connectors/api"
 import actions from "./actions"
 import AdminView from "./AdminView"
 import CharactersView from "./CharactersView"

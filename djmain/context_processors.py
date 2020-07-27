@@ -11,6 +11,10 @@ def context_settings(request=None):
               "value": "1" if settings.DEBUG else ""
           },
           {
+              "key": "HEARTBEAT",
+              "value": "" if settings.DEBUG else "1"
+          },
+          {
               "key": "maxCampaignsPerPlayer",
               "value": 4
           },
