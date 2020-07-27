@@ -33,7 +33,7 @@ export class PaletteGroup extends React.Component {
     )
   }
   extraCellClasses(valueParts) {
-    return valueParts.length > 1 && valueParts[1] == "white" ? ["white"] : []
+    return valueParts.length > 1 && valueParts[1] == "" ? ["white"] : []
   }
   parseStyles(valueParts) {
     const styles = {}

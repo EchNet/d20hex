@@ -50,15 +50,25 @@ class EchoConsumer(AsyncJsonWebsocketConsumer):
 
   async def respond_by_updating_database(self, message):
     if message.get("type") == "bg":
-      await self.update_or_create_map_element(
-          {
-              "campaign_id": self.campaign_id,
-              "layer": "bg",
-              "position": f'{message["hex"]["row"]}:{message["hex"]["col"]}',
-          }, {
-              "sector": 0,
-              "value": message["value"]
-          })
+      if message.get("value", None):
+        await self.update_or_create_map_element(
+            {
+                "campaign_id": self.campaign_id,
+                "layer": "bg",
+                "position": f'{message["hex"]["row"]}:{message["hex"]["col"]}',
+            }, {
+                "sector": 0,
+                "value": message["value"]
+            })
+      else:
+        await self.delete_map_element({
+            "campaign_id":
+            self.campaign_id,
+            "layer":
+            "bg",
+            "position":
+            f'{message["hex"]["row"]}:{message["hex"]["col"]}',
+        })
     if message.get("type") == "token":
       await self.update_or_create_map_element(
           {
@@ -74,6 +84,10 @@ class EchoConsumer(AsyncJsonWebsocketConsumer):
   @database_sync_to_async
   def update_or_create_map_element(self, keys, defaults):
     MapElement.objects.update_or_create(**keys, defaults=defaults)
+
+  @database_sync_to_async
+  def delete_map_element(self, keys):
+    MapElement.objects.filter(**keys).delete()
 
   async def disconnect(self, close_code):
     logger.info(f"disconnect {self.channel_name}")

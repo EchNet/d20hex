@@ -13,7 +13,7 @@ export class MapToolbox extends React.Component {
     super(props)
     this.state = {
       bgToolChoices: [
-        "bg|#848484", "bg|#bda878", "bg|#449944", "bg|#7686ee", "bg|white"
+        "bg|#848484", "bg|#bda878", "bg|#449944", "bg|#7686ee", "bg|"
       ],
       counterToolChoices: [
         "counter|black", "counter|#b00", "counter|#808"

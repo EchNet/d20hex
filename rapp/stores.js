@@ -1,84 +1,17 @@
 import { createStore } from "redux"
 import EventEmitter from "eventemitter3"
-import { v4 as uuidv4 } from "uuid";
 
 import { apiConnector, echoConnector } from "./connectors"
 import actions from "./actions"
 import config from "./config"
+import BaseReducerDispatcher from "./reducers/base"
+import MapReducerDispatcher from "./reducers/map"
+import NavReducerDispatcher from "./reducers/nav"
+import NotesReducerDispatcher from "./reducers/notes"
 
 let DEBUG = config("DEBUG");
 
 export const mapEventEmitter = new EventEmitter()
-
-class NavReducerDispatcher {
-  login() {
-    window.location.href = "/login";
-  }
-}
-
-class BaseReducerDispatcher {
-  constructor(store) {
-    this._store = store
-  }
-  get store() {
-    return this._store
-  }
-  updateState(state, newProps) {
-    return Object.assign({}, state, newProps)
-  }
-  handleApiCall(promise, successActionType, errorActionType=actions.SHOW_ERROR) {
-    promise
-      .then((response) => {
-        this.store.dispatch({ type: successActionType, data: response.data })
-      })
-      .catch((error) => {
-        let message;
-        if (error.response) {
-          if (DEBUG) console.log(error.response);
-          if (error.response.status == 500) {
-            message = "Unexpected server error."
-          }
-          else if (error.response.data) {
-            if (error.response.data.detail) {
-              message = error.response.data.detail;
-            }
-          }
-        }
-        this.store.dispatch({
-          type: errorActionType,
-          message: message || error.toString()
-        })
-      })
-  }
-}
-
-class CampaignNotesReducerDispatcher extends BaseReducerDispatcher {
-  selectCampaign(state, campaign) {
-    if (!campaign) {
-      return this.updateState(state, { campaignNotes: null })
-    }
-    const currentId = state.campaignNotes && state.campaignNotes.campaign.id;
-    this.requestNotes(campaign)
-    if (campaign.id !== currentId) {
-      return this.updateState(state, { campaignNotes: { campaign, known: false }})
-    }
-  }
-  wantNotes(state) {
-    this.requestNotes(state.campaign)
-  }
-  requestNotes(campaign) {
-    this.handleApiCall(apiConnector.getNotesForCampaign(campaign), actions.NOTES_KNOWN)
-  }
-  notesKnown(state, data) {
-    const notes = {}
-    data.forEach((noteData) => {
-      notes[noteData.topic] = noteData;
-    })
-    return this.updateState(state, {
-      campaignNotes: { campaign: state.campaign, known: true, notes }
-    })
-  }
-}
 
 class ReducerDispatcherPrime extends BaseReducerDispatcher {
   startApp(state) {
@@ -228,101 +161,6 @@ class ReducerDispatcherPrime extends BaseReducerDispatcher {
     state = this.updateCampaigns(state, [ campaign ])
     return this.unshowApiBlock(state)
   }
-  wantMap(state) {
-    if (!state.mapKnown) {
-      this.handleApiCall(apiConnector.getMapForCampaign(state.campaign), actions.MAP_KNOWN)
-    }
-    return state
-  }
-  mapKnown(state, mapData) {
-    const bgHash = {}
-    const tokens = []
-    mapData.forEach((ele) => {
-      if (ele.layer == "bg") {
-        bgHash[ele.position] = ele.value
-      }
-      else {
-        tokens.push(ele)
-      }
-    })
-    return this.updateState(state, { bgMap: new BgMap(bgHash), tokens, mapKnown: true })
-  }
-  // Author the setting of a background value.
-  setBackground(state, props) {
-    if (state.bgMap && state.bgMap.setBgValue(props.hex.row, props.hex.col, props.value)) {
-      mapEventEmitter.emit("bgUpdate", props.hex)
-      echoConnector.broadcast({
-        type: "bg",
-        campaignId: state.campaign.id,
-        hex: ((hex) => ({ row: hex.row, col: hex.col }))(props.hex),
-        value: props.value
-      })
-    }
-    return state;
-  }
-  // Echo the setting of a background value.
-  echoBackground(state, props) {
-    if (state.bgMap && state.bgMap.setBgValue(props.hex.row, props.hex.col, props.value)) {
-      mapEventEmitter.emit("bgUpdate", props.hex)
-    }
-    return state;
-  }
-  // Author the placement of a new token.
-  placeToken(state, props) {
-    let tokens = state.tokens || [] 
-    const uuid = uuidv4()
-    const value = props.value;
-    const position = `${props.hex.row}:${props.hex.col}`;
-    let token = { uuid, position, value }
-    tokens = tokens.concat([ token ])
-    echoConnector.broadcast({
-      type: "token",
-      campaignId: state.campaign.id,
-      uuid, position, value
-    })
-    return this.updateState(state, { tokens })
-  }
-  // Author the placement of a counter.
-  modifyToken(state, props) {
-    let tokens = (state.tokens || []).slice()
-    tokens.forEach((token) => {
-      if (token.uuid == props.uuid) {
-        token.value = props.value || token.value;
-        token.position = props.position || token.position;
-        echoConnector.broadcast({
-          type: "token",
-          campaignId: state.campaign.id,
-          uuid: token.uuid,
-          position: token.position,
-          value: token.value
-        })
-      }
-    })
-    return this.updateState(state, { tokens })
-  }
-  // Author the modification of a counter.
-  placeCounter(state, props) {
-    const value = `${state.counterValue},${props.fillStyle}`
-    state = this.updateState(state, { counterValue: state.counterValue + 1 })
-    return this.placeToken(state, Object.assign({}, props, { value }))
-  }
-  // Echo the placement of a token.
-  echoToken(state, props) {
-    let found = false;
-    let tokens = (state.tokens || []).slice()
-    tokens.forEach((token) => {
-      if (token.uuid == props.uuid) {
-        token.value = props.value;
-        token.position = props.position;
-        found = true;
-      }
-    })
-    if (!found) {
-      const token = { uuid: props.uuid, position: props.position, value: props.value }
-      tokens = tokens.concat([ token ])
-    }
-    return this.updateState(state, { tokens })
-  }
   selectTool(state, selectedTool) {
     return this.updateState(state, { selectedTool })
   }
@@ -357,24 +195,6 @@ class ReducerDispatcherPrime extends BaseReducerDispatcher {
   }
   unshowApiBlock(state) {
     return this.updateState(state, { apiblocked: false })
-  }
-}
-
-class BgMap {
-  constructor(data) {
-    this.data = data || {};
-  }
-  getBgValue(row, col) {
-    const key = `${row}:${col}`
-    return this.data[key]
-  }
-  setBgValue(row, col, value) {
-    const key = `${row}:${col}`
-    if (this.data[key] != value) {
-      this.data[key] = value;
-      return true;
-    }
-    return false;
   }
 }
 
@@ -421,8 +241,9 @@ echoConnector.on("app.token", (props) => {
 })
 
 reducerDispatchers = reducerDispatchers.concat([
+  new MapReducerDispatcher(store, mapEventEmitter),
   new NavReducerDispatcher(),
-  new CampaignNotesReducerDispatcher(store),
+  new NotesReducerDispatcher(store),
   new ReducerDispatcherPrime(store)
 ])
 store.dispatch({ type: actions.START_APP })

@@ -147,6 +147,7 @@ export class HexGridRenderer extends HexGridGeometry {
   drawHex(hex) {
     if (hex) {
       const context = this.context;
+      const savedGlobalCompositeOperation = context.globalCompositeOperation;
       context.strokeStyle = this.options.strokeStyle;
       context.lineWidth = this.options.lineWidth;
       context.beginPath();
@@ -158,9 +159,13 @@ export class HexGridRenderer extends HexGridGeometry {
         const bgValue = this.options.bgMap.getBgValue(hex.row, hex.col)
         if (bgValue) {
           context.fillStyle = bgValue;
-          context.fill();
         }
+        else {
+          context.globalCompositeOperation = "destination-out";
+        }
+        context.fill();
       }
+      context.globalCompositeOperation = savedGlobalCompositeOperation;
       context.stroke();
     }
   }
