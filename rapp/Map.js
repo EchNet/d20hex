@@ -11,10 +11,11 @@ import "./Map.css"
 export class Map extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {}
+    this.state = {
+      dragGesture: null,
+      hoverHex: null
+    }
     this.initialDraw = false;
-    this.dragGesture = null;
-    this.hoverHex = null;
     this.boundWindowResizeHandler = this.handleWindowResize.bind(this)
     this.boundBackgroundRedrawHandler = this.handleBackgroundRedraw.bind(this)
   }
@@ -127,7 +128,7 @@ export class Map extends React.Component {
   handleMouseMove(event) {
     const hex = this.getBoundingHexOfEvent(event)
     if (!hexesEqual(hex, this.state.hoverHex)) {
-      this.dragGesture && this.dragGesture.enterHex(hex);
+      this.state.dragGesture && this.state.dragGesture.enterHex(hex);
       this.setState({ hoverHex: hex })
     }
   }
@@ -137,7 +138,7 @@ export class Map extends React.Component {
       const selectedTool = this.selectedTool;
       switch (selectedTool[0]) {
       case "bg":
-        this.dragGesture = new BackgroundPaintGesture(this, selectedTool[1]).start(hex);
+        this.setState({ dragGesture: new BackgroundPaintGesture(this, selectedTool[1]).start(hex) })
         break;
       case "counter":
         this.dropCounterOnHex(hex)
@@ -147,7 +148,7 @@ export class Map extends React.Component {
         break;
       case "grabber":
         if (event.target.className == "Token") {
-          this.dragGesture = new TokenMoveGesture(this, event.target.getAttribute("data-uuid")).start(hex);
+          this.setState({ dragGesture: new TokenMoveGesture(this, event.target.getAttribute("data-uuid")).start(hex) })
         }
       }
     }
@@ -185,11 +186,11 @@ export class Map extends React.Component {
     })
   }
   endDrag(isCancelled = false) {
-    if (!isCancelled && this.dragGesture) {
-      this.dragGesture.terminate();
+    if (!isCancelled && this.state.dragGesture) {
+      this.state.dragGesture.terminate();
     }
     this.clearAllFeedback()
-    this.dragGesture = null;
+    this.setState({ dragGesture: null })
   }
   static eventPoint(event) {
     var rect = event.currentTarget.getBoundingClientRect();
