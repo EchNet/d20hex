@@ -69,16 +69,19 @@ class EchoConsumer(AsyncJsonWebsocketConsumer):
             f'{message["hex"]["row"]}:{message["hex"]["col"]}',
         })
     elif message_type == "token":
-      await self.update_or_create_map_element(
-          {
-              "uuid": message.get("uuid", None),
-              "campaign_id": self.campaign_id,
-          }, {
-              "sector": 0,
-              "layer": "fg",
-              "position": message["position"],
-              "value": message["value"]
-          })
+      if message.get("position", None):
+        await self.update_or_create_map_element(
+            {
+                "uuid": message.get("uuid", None),
+                "campaign_id": self.campaign_id,
+            }, {
+                "sector": 0,
+                "layer": "fg",
+                "position": message["position"],
+                "value": message["value"]
+            })
+      else:
+        await self.delete_map_element({"campaign_id": self.campaign_id, "uuid": message["uuid"]})
 
   @database_sync_to_async
   def update_or_create_map_element(self, keys, defaults):

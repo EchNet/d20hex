@@ -36,7 +36,8 @@ export const actions = {
   "PLACE_COUNTER": "placeCounter",
   "PLACE_TOKEN": "placeToken",
   "ECHO_TOKEN": "echoToken",
-  "MODIFY_TOKEN": "modifyToken"
+  "MODIFY_TOKEN": "modifyToken",
+  "DELETE_TOKEN": "deleteToken"
 }
 
 export default actions

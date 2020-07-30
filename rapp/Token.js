@@ -15,7 +15,8 @@ export class Token extends React.Component {
     const positionParts = token.position.split(":")
     let hex = geometry.locateHex({ row: positionParts[0], col: positionParts[1] });
     return (
-      <div className="Token" data-uuid={token.uuid} style={{
+      <div className="Token" data-uuid={token.uuid}
+          style={{
               position: "absolute",
               top: `${hex.cy - tokenDiameter/2}px`,
               left: `${hex.cx - tokenDiameter/2}px`,
@@ -33,6 +34,32 @@ export class Token extends React.Component {
         onMouseMove={(event) => event.preventDefault()}
         onMouseDown={(event) => event.preventDefault()}
         >{ label }</div>
+    )
+  }
+}
+
+export class TokenSelectHalo extends React.Component {
+  render() {
+    const token = this.props.token;
+    const geometry = new HexGridGeometry();
+    const tokenDiameter = geometry.unitDistance;
+    const GAP = 2;
+    const THICKNESS = 3;
+    const haloDiameter = tokenDiameter + (GAP*2) + (THICKNESS*2);
+    const positionParts = token.position.split(":")
+    let hex = geometry.locateHex({ row: positionParts[0], col: positionParts[1] })
+    return (
+      <div className="TokenSelectHalo" data-uuid={token.uuid}
+          style={{
+              position: "absolute",
+              top: `${hex.cy - haloDiameter/2}px`,
+              left: `${hex.cx - haloDiameter/2}px`,
+              width: `${haloDiameter}px`,
+              height: `${haloDiameter}px`,
+              borderRadius: "50%",
+              border: `solid ${THICKNESS}px rgba(196,196,255,0.75)`
+          }}
+        ></div>
     )
   }
 }

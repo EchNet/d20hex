@@ -64,23 +64,31 @@ export class MapReducerDispatcher extends BaseReducerDispatcher {
     })
     return this.updateState(state, { tokens })
   }
-  // Author the placement of a counter.
+  // Author the modification of a token.
   modifyToken(state, props) {
-    let tokens = (state.tokens || []).slice()
+    const tokens = (state.tokens || []).slice()
+    const modified = this.doModifyToken(tokens, props)
+    if (modified) {
+      echoConnector.broadcast({
+        type: "token",
+        campaignId: state.campaign.id,
+        uuid: token.uuid,
+        position: token.position,
+        value: token.value
+      })
+    }
+    return this.updateState(state, { tokens })
+  }
+  doModifyToken(tokens, props) {
+    let modifiedToken = null;
     tokens.forEach((token) => {
       if (token.uuid == props.uuid) {
         token.value = props.value || token.value;
         token.position = props.position || token.position;
-        echoConnector.broadcast({
-          type: "token",
-          campaignId: state.campaign.id,
-          uuid: token.uuid,
-          position: token.position,
-          value: token.value
-        })
+        modifiedToken = token;
       }
     })
-    return this.updateState(state, { tokens })
+    return modifiedToken;
   }
   // Author the modification of a counter.
   placeCounter(state, props) {
@@ -88,22 +96,33 @@ export class MapReducerDispatcher extends BaseReducerDispatcher {
     state = this.updateState(state, { counterValue: state.counterValue + 1 })
     return this.placeToken(state, Object.assign({}, props, { value }))
   }
-  // Echo the placement of a token.
-  echoToken(state, props) {
-    let found = false;
-    let tokens = (state.tokens || []).slice()
-    tokens.forEach((token) => {
-      if (token.uuid == props.uuid) {
-        token.value = props.value;
-        token.position = props.position;
-        found = true;
-      }
+  // Author the deletion of a token.
+  deleteToken(state, props) {
+    echoConnector.broadcast({
+      type: "token",
+      campaignId: state.campaign.id,
+      uuid: props.uuid
     })
-    if (!found) {
-      const token = { uuid: props.uuid, position: props.position, value: props.value }
-      tokens = tokens.concat([ token ])
-    }
+    return this.doDeleteToken(state, props)
+  }
+  doDeleteToken(state, props) {
+    const tokens = (state.tokens || []).filter((token) => token.uuid != props.uuid)
     return this.updateState(state, { tokens })
+  }
+  // Echo the placement or deletion of a token.
+  echoToken(state, props) {
+    if (!props.position && !props.value) {
+      return this.doDeleteToken(state, props)
+    }
+    else {
+      let tokens = (state.tokens || []).slice()
+      const modifiedToken = this.doModifyToken(tokens, props)
+      if (!modifiedToken) {
+        const token = { uuid: props.uuid, position: props.position, value: props.value }
+        tokens = tokens.concat([ token ])
+      }
+      return this.updateState(state, { tokens })
+    }
   }
 }
 

@@ -5,6 +5,7 @@ import actions from "./actions"
 import { mapEventEmitter } from "./stores"
 import HexGridRenderer from "./HexGridRenderer"
 import Token from "./Token"
+import { TokenSelectHalo } from "./Token"
 import "./Map.css"
 
 
@@ -13,14 +14,25 @@ export class Map extends React.Component {
     super(props)
     this.state = {
       dragGesture: null,
-      hoverHex: null
+      hoverHex: null,
+      selectedToken: null
     }
     this.initialDraw = false;
     this.boundWindowResizeHandler = this.handleWindowResize.bind(this)
     this.boundBackgroundRedrawHandler = this.handleBackgroundRedraw.bind(this)
+    this.boundKeyPressHandler = this.handleKeyPress.bind(this)
+  }
+  static getDerivedStateFromProps(props, state) {
+    // If the selected token is deleted, remove the halo.
+    if (state.selectedToken &&
+        !props.tokens.find((token) => token.uuid == state.selectedToken.uuid)) {
+      return { selectedToken: null }
+    }
+    return null;
   }
   componentDidMount() {
     window.addEventListener("resize", this.boundWindowResizeHandler)
+    document.addEventListener("keydown", this.boundKeyPressHandler)
     mapEventEmitter.on("bgUpdate", this.boundBackgroundRedrawHandler)
     if (this.props.bgMap) {
       this.rescaleCanvas()
@@ -41,6 +53,7 @@ export class Map extends React.Component {
   }
   componentWillUnmount() {
     window.addEventListener("resize", this.boundWindowResizeHandler)
+    document.removeEventListener("keydown", this.boundKeyPressHandler)
     mapEventEmitter.off("bgUpdate", this.boundBackgroundRedrawHandler)
   }
   rescaleCanvas() {
@@ -75,7 +88,8 @@ export class Map extends React.Component {
   }
   render() {
     return (
-      <div className={`Map ${this.selectedTool[0]}`}
+      <div className={`Map ${this.selectedToolType}`}
+          onClick={(event) => this.handleClick(event)}
           onMouseEnter={(event) => this.handleMouseEnter(event)}
           onMouseLeave={(event) => this.handleMouseLeave(event)}
           onMouseMove={(event) => this.handleMouseMove(event)}
@@ -84,10 +98,12 @@ export class Map extends React.Component {
         <canvas className="layer" key="backgroundCanvas" ref="backgroundCanvas"></canvas>
         <canvas className="layer" key="gestureCanvas" ref="gestureCanvas"></canvas>
         <div className="layer">
-          { this.props.tokens &&
-            this.props.tokens.map((token) => <Token key={token.uuid} token={token}/>) }
+          { (this.props.tokens || []).map((token) =>
+            <Token key={token.uuid} token={token}
+                onClick={(event) => this.handleTokenClick(event)}/>) }
+          { this.state.selectedToken && <TokenSelectHalo token={this.state.selectedToken}/> }
         </div>
-        { this.selectedTool[0] == "info" && !!this.state.hoverHex &&
+        { this.selectedToolType == "info" && !!this.state.hoverHex &&
           this.renderHexInfo(this.state.hoverHex) }
       </div>
     )
@@ -135,10 +151,15 @@ export class Map extends React.Component {
   handleMouseDown(event) {
     const hex = this.getBoundingHexOfEvent(event)
     if (hex) {
-      const selectedTool = this.selectedTool;
-      switch (selectedTool[0]) {
+      switch (this.selectedToolType) {
+      case "grabber":
+        const tokenUuid = this.eventGetTokenUuid(event);
+        if (tokenUuid) {
+          this.setState({ dragGesture: new TokenMoveGesture(this, tokenUuid).start(hex) })
+        }
+        break;
       case "bg":
-        this.setState({ dragGesture: new BackgroundPaintGesture(this, selectedTool[1]).start(hex) })
+        this.setState({ dragGesture: new BackgroundPaintGesture(this, this.selectedToolValue).start(hex) })
         break;
       case "counter":
         this.dropCounterOnHex(hex)
@@ -146,21 +167,41 @@ export class Map extends React.Component {
       case "token":
         this.dropTokenOnHex(hex)
         break;
-      case "grabber":
-        if (event.target.className == "Token") {
-          this.setState({ dragGesture: new TokenMoveGesture(this, event.target.getAttribute("data-uuid")).start(hex) })
-        }
       }
     }
   }
   handleMouseUp(event) {
     this.endDrag()
   }
-  get selectedTool() {
-    if (this.props.selectedTool) {
-      return this.props.selectedTool.split("|")
+  handleClick(event) {
+    if (this.selectedToolType == "grabber") {
+      const tokenUuid = this.eventGetTokenUuid(event);
+      if (tokenUuid) {
+        this.setState({ selectedToken: this.props.tokens.find((ele) => ele.uuid == tokenUuid) })
+        return;
+      }
     }
-    return [""]
+    this.setState({ selectedToken: null });
+  }
+  handleKeyPress(event) {
+    if (event.key == "Backspace" && this.state.selectedToken) {
+      this.props.dispatch({ type: actions.DELETE_TOKEN, props: this.state.selectedToken })
+      this.setState({ selectedToken: null })
+    }
+  }
+  eventGetTokenUuid(event) {
+    if (event.target.className == "Token") {
+      return event.target.getAttribute("data-uuid")
+    }
+  }
+  get selectedToolType() {
+    return this.props.selectedTool && this.props.selectedTool.split("|")[0]
+  }
+  get selectedToolValue() {
+    if (this.props.selectedTool) {
+      const parts = this.props.selectedTool.split("|")
+      return parts.length > 1 && parts[1]
+    }
   }
   getBoundingHexOfEvent(event) {
     return new HexGridRenderer(this.refs.gestureCanvas).getBoundingHex(Map.eventPoint(event))
@@ -168,7 +209,7 @@ export class Map extends React.Component {
   clearAllFeedback() {
     new HexGridRenderer(this.refs.gestureCanvas).clear()
   }
-  assignColorToHex(hex, color) {
+  assignBackgroundColorToHex(hex, color) {
     this.props.dispatch({ type: actions.SET_BACKGROUND, props: {
       author: true, hex: hex, value: color
     }})
@@ -176,13 +217,13 @@ export class Map extends React.Component {
   dropCounterOnHex(hex, color) {
     this.props.dispatch({
       type: actions.PLACE_COUNTER,
-      props: { hex, fillStyle: this.selectedTool[1] }
+      props: { hex, fillStyle: this.selectedToolValue }
     })
   }
   dropTokenOnHex(hex, color) {
     this.props.dispatch({
       type: actions.PLACE_TOKEN,
-      props: { hex, value: `,${this.selectedTool[1]}` }
+      props: { hex, value: `,${this.selectedToolValue}` }
     })
   }
   endDrag(isCancelled = false) {
@@ -220,7 +261,7 @@ class BackgroundPaintGesture extends DragGesture {
     this.fillStyle = fillStyle;
   }
   enterHex(hex) {
-    this.mapComponent.assignColorToHex(hex, this.fillStyle)
+    this.mapComponent.assignBackgroundColorToHex(hex, this.fillStyle)
     return this;
   }
 }
@@ -233,7 +274,6 @@ class TokenMoveGesture extends DragGesture {
   start(hex) {
     this.sourceHex = hex;
     this.destHex = null;
-    this.draw()
     return this;
   }
   enterHex(hex) {
@@ -250,12 +290,6 @@ class TokenMoveGesture extends DragGesture {
     }
   }
   draw() {
-    if (this.sourceHex) {
-      new HexGridRenderer(this.mapComponent.refs.gestureCanvas, {
-        strokeStyle: "orange",
-        lineWidth: 2
-      }).clear().drawHex(this.sourceHex)
-    }
     if (this.destHex && !hexesEqual(this.sourceHex, this.destHex)) {
       new HexGridRenderer(this.mapComponent.refs.gestureCanvas, {
         strokeStyle: "red",
