@@ -37,7 +37,9 @@ export const actions = {
   "PLACE_TOKEN": "placeToken",
   "ECHO_TOKEN": "echoToken",
   "MODIFY_TOKEN": "modifyToken",
-  "DELETE_TOKEN": "deleteToken"
+  "DELETE_TOKEN": "deleteToken",
+  "CREATE_NOTE": "createNote",
+  "ECHO_NOTE": "echoNote"
 }
 
 export default actions

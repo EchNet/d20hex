@@ -1,5 +1,6 @@
 import actions from "../actions"
 import apiConnector from "../connectors/api"
+import echoConnector from "../connectors/echo"
 import BaseReducerDispatcher from "./base";
 
 export class NotesReducerDispatcher extends BaseReducerDispatcher {
@@ -27,6 +28,18 @@ export class NotesReducerDispatcher extends BaseReducerDispatcher {
     return this.updateState(state, {
       campaignNotes: { campaign: state.campaign, known: true, notes }
     })
+  }
+  createNote(state, data) {
+    echoConnector.broadcast(Object.assign({
+      type: "note",
+      campaignId: state.campaignNotes.campaign.id,
+    }, data))
+    return this.echoNote(state, data)
+  }
+  echoNote(state, data) {
+    const campaignNotes = Object.assign({}, state.campaignNotes)
+    campaignNotes.notes[data.topic] = data;
+    return this.updateState(state, { campaignNotes })
   }
 }
 

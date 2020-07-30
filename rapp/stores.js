@@ -243,6 +243,10 @@ echoConnector.on("app.token", (props) => {
   if (DEBUG) console.log("app.token received", props)
   store.dispatch({ type: actions.ECHO_TOKEN, props });
 })
+echoConnector.on("app.note", (props) => {
+  if (DEBUG) console.log("app.note received", props)
+  store.dispatch({ type: actions.ECHO_NOTE, props });
+})
 
 reducerDispatchers = reducerDispatchers.concat([
   new MapReducerDispatcher(store, mapEventEmitter),

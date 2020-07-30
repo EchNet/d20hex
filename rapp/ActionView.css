@@ -42,6 +42,9 @@
   border-top: ridge 3px #cccccc;
   z-index: 3;
 }
+.ActionView .card.right {
+  right: 0px;
+}
 .ActionView .dayValue {
   color: #aa2aaa;
   font-weight: 600;

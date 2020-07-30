@@ -19,22 +19,17 @@ export class ActionView extends React.Component {
     this.state = {
       timeCardShown: false,
       meleeCardShown: false,
-      locationCardShown: false
+      locationCardShown: false,
+      locationInput: ""
     }
   }
   render() {
     return (
       <div className="ActionView">
         <div className="infobar">
-          <div>
-            { this.renderMeleeTab(this.props.currentMelee) }
-          </div>
-          <div>
-            { this.renderTimeTab() }
-          </div>
-          <div>
-            { this.renderLocationTab() }
-          </div>
+          { this.renderMeleeTab(this.props.currentMelee) }
+          { this.renderTimeTab() }
+          { this.renderLocationTab() }
           { !!this.props.campaign.can_manage && <MapToolbox/> }
         </div>
         <Map/>
@@ -72,40 +67,52 @@ export class ActionView extends React.Component {
     )
   }
   renderTimeTab() {
-    const t = this.props.campaignNotes && this.props.campaignNotes.notes && this.props.campaignNotes.notes.time;
+    let t = null;
+    try {
+      t = this.props.campaignNotes.notes.time.json;
+    }
+    catch (e) {
+      // Not there.
+    }
     return (
       <div className="tabCardContainer">
         <div className="tab" onClick={() => this.toggleState("timeCardShown")}>
           <span className="label">Day</span> <span className="dayValue">{(!!t && t.day) || 0}</span>
           <span>&nbsp;</span>
           { !!t && <span className="timeValue">{tfmt(t.hour)}:{tfmt(t.minute)}:{tfmt(t.second)}</span> }
-          <i className="material-icons">
-            { this.state.timeCardShown ? "unfold_less" : "unfold_more" }
-          </i>
+          { this.props.campaign.can_manage && <i className="material-icons">
+              { this.state.timeCardShown ? "unfold_less" : "unfold_more" }
+            </i> }
         </div>
-        { this.state.timeCardShown && this.renderTimeCard() }
+        { this.props.campaign.can_manage && this.state.timeCardShown && this.renderTimeCard() }
       </div>
     )
   }
   renderLocationTab() {
-    const l = this.props.campaignNotes && this.props.campaignNotes.notes && this.props.campaignNotes.notes.location;
+    let l = null;
+    try {
+      console.log(this.props.campaignNotes.notes)
+      l = this.props.campaignNotes.notes.location.text;
+    }
+    catch (e) {
+      // Not there.
+    }
     return (
       <div className="tabCardContainer">
         <div className="tab" onClick={() => this.toggleState("locationCardShown")}>
-          { !!l && <span className="whereValue">{l.shortName}</span> }
+          { !!l && <span className="whereValue">{l}</span> }
           { !l && <span>(No location set)</span> }
           <i className="material-icons">
             { this.state.locationCardShown ? "unfold_less" : "unfold_more" }
           </i>
         </div>
-        { this.state.locationCardShown && this.renderLocationCard(l) }
+        { this.state.locationCardShown && this.renderLocationCard() }
       </div>
     )
   }
   renderTimeCard() {
     return (
       <div className="card">
-        { this.renderNoteForm("time") }
       </div>
     )
   }
@@ -114,27 +121,34 @@ export class ActionView extends React.Component {
   }
   renderLocationCard() {
     return (
-      <div className="card">
-        { this.renderNoteForm("location") }
-      </div>
-    )
-  }
-  renderNoteForm(topic) {
-    return (
-      <div className="noteForm">
-        <form onSubmit={(event) => this.handleNoteFormSubmit(topic, event)}>
-          <div>Topic: {topic}</div>
-          <input type="hidden" name="topic" value={topic} />
-          <div><textarea name="json"/></div>
-          <div><textarea name="text"/></div>
-          <input type="submit"/>
+      <div className="card right">
+        <form onSubmit={(event) => this.handleLocationFormSubmit(event)}>
+          <input type="hidden" name="topic" value="location" />
+          <div>
+            <input type="text" name="text" placeholder="Where"
+                  value={this.state.locationInput}
+                  onChange={(event) => this.handleLocationInputChange(event)}/>
+          </div>
+          <input type="submit" disabled={this.state.locationInput.length > 0 ? "" : "disabled"}/>
         </form>
       </div>
     )
   }
+  handleLocationInputChange(event) {
+    const locationInputValue = event.target.value;
+    this.setState({ locationInput: locationInputValue })
+  }
+  handleLocationFormSubmit(event) {
+    event.preventDefault();
+    this.props.dispatch({ type: actions.CREATE_NOTE, data: {
+      topic: "location", text: this.state.locationInput
+    }})
+    this.setState({ locationCardShown: false, locationInput: "" })
+  }
   handleNoteFormSubmit(event) {
     event.preventDefault();
     this.setState({ locationCardShown: false, timeCardShown: false, meleeCardShown: false });
+    console.log(event, event.target);
     this.props.dispatch({ type: actions.CREATE_NOTE, data: event.form })
   }
   toggleState(key) {

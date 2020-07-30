@@ -4,7 +4,7 @@ import logging
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
-from tempdoc.models import MapElement
+from tempdoc.models import MapElement, Note
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +82,13 @@ class EchoConsumer(AsyncJsonWebsocketConsumer):
             })
       else:
         await self.delete_map_element({"campaign_id": self.campaign_id, "uuid": message["uuid"]})
+    elif message_type == "note":
+      await self.create_note({
+          "campaign_id": self.campaign_id,
+          "topic": message.get("topic"),
+          "json": message.get("json", None),
+          "text": message.get("text", None),
+      })
 
   @database_sync_to_async
   def update_or_create_map_element(self, keys, defaults):
@@ -90,6 +97,10 @@ class EchoConsumer(AsyncJsonWebsocketConsumer):
   @database_sync_to_async
   def delete_map_element(self, keys):
     MapElement.objects.filter(**keys).delete()
+
+  @database_sync_to_async
+  def create_note(self, props):
+    Note.objects.create(**props)
 
   async def respond_by_sending(self, message):
     # group_send does JSON serialization underneath the hood.
@@ -111,7 +122,7 @@ class EchoConsumer(AsyncJsonWebsocketConsumer):
       self.campaign_id = campaign_id
       if campaign_id:
         await self.channel_layer.group_add(self.broadcast_group_id, self.channel_name)
-        logger.info(f"joind channel {self.broadcast_group_id}")
+        logger.info(f"joined channel {self.broadcast_group_id}")
 
   # Handler for campaign.echo event just sends the message to the client.
   async def campaign_echo(self, event):
