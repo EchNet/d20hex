@@ -67,14 +67,14 @@ export class MapReducerDispatcher extends BaseReducerDispatcher {
   // Author the modification of a token.
   modifyToken(state, props) {
     const tokens = (state.tokens || []).slice()
-    const modified = this.doModifyToken(tokens, props)
-    if (modified) {
+    const modifiedToken = this.doModifyToken(tokens, props)
+    if (modifiedToken) {
       echoConnector.broadcast({
         type: "token",
         campaignId: state.campaign.id,
-        uuid: token.uuid,
-        position: token.position,
-        value: token.value
+        uuid: modifiedToken.uuid,
+        position: modifiedToken.position,
+        value: modifiedToken.value
       })
     }
     return this.updateState(state, { tokens })
