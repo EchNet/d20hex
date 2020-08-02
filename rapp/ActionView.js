@@ -84,7 +84,7 @@ export class ActionView extends React.Component {
             { this.state.timeCardShown ? "unfold_less" : "unfold_more" }
           </i>
         </div>
-        { this.props.campaign.can_manage && this.state.timeCardShown && this.renderTimeCard() }
+        { this.state.timeCardShown && this.renderTimeCard() }
       </div>
     )
   }
@@ -106,7 +106,7 @@ export class ActionView extends React.Component {
             { this.state.locationCardShown ? "unfold_less" : "unfold_more" }
           </i>
         </div>
-        { this.state.locationCardShown && this.renderLocationCard() }
+        { this.props.campaign.can_manage && this.state.locationCardShown && this.renderLocationCard() }
       </div>
     )
   }
