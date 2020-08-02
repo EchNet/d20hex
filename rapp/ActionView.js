@@ -80,9 +80,9 @@ export class ActionView extends React.Component {
           <span className="label">Day</span> <span className="dayValue">{(!!t && t.day) || 0}</span>
           <span>&nbsp;</span>
           { !!t && <span className="timeValue">{tfmt(t.hour)}:{tfmt(t.minute)}:{tfmt(t.second)}</span> }
-          { this.props.campaign.can_manage && <i className="material-icons">
-              { this.state.timeCardShown ? "unfold_less" : "unfold_more" }
-            </i> }
+          <i className="material-icons">
+            { this.state.timeCardShown ? "unfold_less" : "unfold_more" }
+          </i>
         </div>
         { this.props.campaign.can_manage && this.state.timeCardShown && this.renderTimeCard() }
       </div>
@@ -111,10 +111,44 @@ export class ActionView extends React.Component {
     )
   }
   renderTimeCard() {
+    let priorText = "";
+    try {
+      priorText = this.props.campaignNotes.notes.time.text;
+    }
+    catch (e) {
+    }
     return (
       <div className="card">
+        <div>{ priorText }</div>
+        { this.props.campaign.can_manage && this.renderTimeForm() }
       </div>
     )
+  }
+  renderTimeForm() {
+    return (
+      <form onSubmit={(event) => this.handleTimeFormSubmit(event)}>
+        <input ref="dayInput" placeholder="Day"/>
+        <input ref="hourInput" placeholder="Hour"/>
+        <input ref="minuteInput" placeholder="Minute"/>
+        <input ref="secondInput" placeholder="Second"/>
+        <textarea ref="timeTextInput" placeholder="What's going on"/>
+        <input type="submit"/>
+      </form>
+    )
+  }
+  handleTimeFormSubmit(event) {
+    event.preventDefault();
+    this.props.dispatch({ type: actions.CREATE_NOTE, data: {
+      topic: "time",
+      text: this.refs.timeTextInput.value,
+      json: { 
+        day: this.refs.dayInput.value,
+        hour: this.refs.hourInput.value,
+        minute: this.refs.minuteInput.value,
+        second: this.refs.secondInput.value
+      }
+    }})
+    this.setState({ timeCardShown: false })
   }
   renderMeleeCard(m) {
     return (<div className="card">PLACEHOLDER</div>)
