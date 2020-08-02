@@ -42,8 +42,8 @@ celery: djbuild
 package-lock.json: package.json
 	$(NPM) install
 
-rrun: package-lock.json
-	./node_modules/.bin/parcel rapp/index.html
+rrun: clean package-lock.json
+	./node_modules/.bin/parcel watch rapp/index.html
 
 rtest: package-lock.json
 	@echo React tests not yet implemented.
@@ -52,4 +52,4 @@ rdist: package-lock.json
 	./node_modules/.bin/parcel build rapp/index.js
 
 clean:
-	rm -rf dist .cache build
+	rm -rf dist .cache

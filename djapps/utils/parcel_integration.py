@@ -1,3 +1,4 @@
+import glob
 import os
 
 from django.conf import settings
@@ -20,26 +21,24 @@ class WebAssetFinder(HTMLParser):
     if tag == "script":
       self._scripts.append(attrs.get("src")[1:])
 
-  def _find_assets(self):
-    self._stylesheets = []
-    self._scripts = []
-    if isfile("dist/index.html"):
-      # Development mode: scrape the name of the compiled JS file and CSS files out of the
-      # index file in the parcel dist folder.
-      with open("dist/index.html", "r") as input_file:
-        self.feed(input_file.read())
-    else:
-      # Production: JS and CSS files were built by "npm build".
-      self._stylesheets = ["index.css"]
-      self._scripts = ["index.js"]
+  def scan_html_file(self, fname):
+    # Old method: scrape JS and CSS file names out of the generated index file.
+    with open(fname, "r") as input_file:
+      self.feed(input_file.read())
 
-  def _prefix_all(self, fnamelist):
-    return (os.path.join(settings.STATIC_URL, self.url_prefix, fname) for fname in fnamelist)
+  def _find_assets(self):
+    # Find the newest JS and CSS files in the parcel dist folder.
+    self._stylesheets = [max(glob.glob("dist/*.css"), key=os.path.getctime)]
+    self._scripts = [max(glob.glob("dist/*.js"), key=os.path.getctime)]
+
+  def _reroot_all(self, pathlist):
+    return (os.path.join(settings.STATIC_URL, self.url_prefix,
+                         os.path.split(path)[1]) for path in pathlist)
 
   @property
   def stylesheets(self):
-    return self._prefix_all(self._stylesheets)
+    return self._reroot_all(self._stylesheets)
 
   @property
   def scripts(self):
-    return self._prefix_all(self._scripts)
+    return self._reroot_all(self._scripts)
