@@ -3,9 +3,8 @@ import { connect } from 'react-redux';
 
 import actions from "./actions"
 import { mapEventEmitter } from "./stores"
-import HexGridRenderer from "./HexGridRenderer"
+import { HexGridPath, HexGridRenderer } from "./HexGridRenderer"
 import Token from "./Token"
-import { TokenSelectHalo } from "./Token"
 import "./Map.css"
 
 
@@ -26,7 +25,7 @@ export class Map extends React.Component {
     // If the selected token is deleted, remove the halo.
     if (state.selectedToken &&
         !props.tokens.find((token) => token.uuid == state.selectedToken.uuid)) {
-      return { selectedToken: null }
+      return { selectedToken: null, dragGesture: null }
     }
     return null;
   }
@@ -100,8 +99,8 @@ export class Map extends React.Component {
         <div className="layer">
           { (this.props.tokens || []).map((token) =>
             <Token key={token.uuid} token={token}
+                selected={this.state.selectedToken == token}
                 onClick={(event) => this.handleTokenClick(event)}/>) }
-          { this.state.selectedToken && <TokenSelectHalo token={this.state.selectedToken}/> }
         </div>
         { this.selectedToolType == "info" && !!this.state.hoverHex &&
           this.renderHexInfo(this.state.hoverHex) }
@@ -155,11 +154,12 @@ export class Map extends React.Component {
       case "grabber":
         const tokenUuid = this.eventGetTokenUuid(event);
         if (tokenUuid) {
-          this.setState({ dragGesture: new TokenMoveGesture(this, tokenUuid).start(hex) })
+          const token = this.props.tokens.find((ele) => ele.uuid == tokenUuid)
+          this.setState({ dragGesture: new TokenMoveGesture(this, token, hex) })
         }
         break;
       case "bg":
-        this.setState({ dragGesture: new BackgroundPaintGesture(this, this.selectedToolValue).start(hex) })
+        this.setState({ dragGesture: new BackgroundPaintGesture(this, this.selectedToolValue, hex) })
         break;
       case "counter":
         this.dropCounterOnHex(hex)
@@ -174,19 +174,12 @@ export class Map extends React.Component {
     this.endDrag()
   }
   handleClick(event) {
-    if (this.selectedToolType == "grabber") {
-      const tokenUuid = this.eventGetTokenUuid(event);
-      if (tokenUuid) {
-        this.setState({ selectedToken: this.props.tokens.find((ele) => ele.uuid == tokenUuid) })
-        return;
-      }
-    }
-    this.setState({ selectedToken: null });
   }
   handleKeyPress(event) {
     if (event.key == "Backspace" && this.state.selectedToken) {
       this.props.dispatch({ type: actions.DELETE_TOKEN, props: this.state.selectedToken })
       this.setState({ selectedToken: null })
+      this.clearAllFeedback();
     }
   }
   eventGetTokenUuid(event) {
@@ -228,7 +221,7 @@ export class Map extends React.Component {
   }
   endDrag(isCancelled = false) {
     if (!isCancelled && this.state.dragGesture) {
-      this.state.dragGesture.terminate();
+      this.state.dragGesture.complete();
     }
     this.clearAllFeedback()
     this.setState({ dragGesture: null })
@@ -245,13 +238,9 @@ class DragGesture {
   constructor(mapComponent) {
     this.mapComponent = mapComponent;
   }
-  start(hex) {
-    return this.enterHex(hex)
-  }
   enterHex(hex) {
-    return this;
   }
-  terminate() {
+  complete() {
   }
 }
 
@@ -267,35 +256,33 @@ class BackgroundPaintGesture extends DragGesture {
 }
 
 class TokenMoveGesture extends DragGesture {
-  constructor(mapComponent, tokenUuid) {
+  constructor(mapComponent, token, hex) {
     super(mapComponent)
-    this.tokenUuid = tokenUuid;
-  }
-  start(hex) {
-    this.sourceHex = hex;
-    this.destHex = null;
-    return this;
+    this.token = token;
+    this.path = new HexGridPath(hex)
+    this.draw();
   }
   enterHex(hex) {
-    this.destHex = hex;
+    this.path.add(hex);
     this.draw();
-    return this;
   }
-  terminate() {
-    if (this.destHex && !hexesEqual(this.sourceHex, this.destHex)) {
+  complete() {
+    if (this.path.length > 1) {
       this.mapComponent.props.dispatch({ type: actions.MODIFY_TOKEN, props: {
-        uuid: this.tokenUuid,
-        position: `${this.destHex.row}:${this.destHex.col}`
+        uuid: this.token.uuid,
+        position: this.path.endHexString
       }})
+    }
+    else {
+      this.mapComponent.setState({ selectedToken: this.token })
     }
   }
   draw() {
-    if (this.destHex && !hexesEqual(this.sourceHex, this.destHex)) {
-      new HexGridRenderer(this.mapComponent.refs.gestureCanvas, {
-        strokeStyle: "red",
-        lineWidth: 2
-      }).clear().drawHex(this.destHex)
-    }
+    new HexGridRenderer(this.mapComponent.refs.gestureCanvas, {
+      strokeStyle: "rgba(192,80,0,0.5)",
+      fillStyle: "rgba(192,80,0,0.5)",
+      lineWidth: 1
+    }).clear().drawPath(this.path)
   }
 }
 

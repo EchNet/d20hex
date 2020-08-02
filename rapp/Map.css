@@ -13,3 +13,6 @@
 .Map.grabber {
   cursor: pointer;
 }
+.Map .noclick {
+  pointer-events: none;
+}
