@@ -7,7 +7,7 @@ import actions from "./actions"
 import AdminView from "./AdminView"
 import CharactersView from "./CharactersView"
 import ActionView from "./ActionView"
-import {Menu, MenuItem} from "./Menu"
+import {DefaultMenu, MenuItem} from "./Menu"
 import UserMenu from "./UserMenu"
 import "./CampaignView.css"
 
@@ -38,7 +38,7 @@ export class CampaignView extends React.Component {
     return (
       <header>
         <div className="left">
-          <Menu icon="menu" label={this.props.campaign.name }>
+          <DefaultMenu label={this.props.campaign.name }>
             <MenuItem onClick={() => this.showActionView()}>
               The Action
             </MenuItem>
@@ -54,7 +54,7 @@ export class CampaignView extends React.Component {
                 Exit Campaign
               </Link>
             </MenuItem>
-          </Menu>
+          </DefaultMenu>
         </div>
         <div><img src="/static/img/favicon-32x32.png"/></div>
         <UserMenu/>

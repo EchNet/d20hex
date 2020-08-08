@@ -1,7 +1,7 @@
 import * as React from "react"
 import { connect } from "react-redux"
 
-import { Menu, MenuItem } from "./Menu"
+import { DefaultMenu, MenuItem } from "./Menu"
 import Modal from "./Modal"
 import SingleTextValueForm from "./SingleTextValueForm"
 import actions from "./actions"
@@ -17,14 +17,14 @@ export class UserMenu extends React.Component {
   render() {
     return (
       <div>
-        <Menu right="right" label={this.props.userName}>
+        <DefaultMenu orientation="right" label={this.props.userName}>
           <MenuItem onClick={() => this.openOrClosePlayerNameModal(true)}>
             Change player name
           </MenuItem>
           <MenuItem onClick={() => window.location = "/logout"}>
             Log out
           </MenuItem>
-        </Menu>
+        </DefaultMenu>
         { this.state.playerNameModalShown && this.renderPlayerNameModal() }
       </div>
     )

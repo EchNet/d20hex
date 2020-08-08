@@ -91,7 +91,6 @@ export class ActionView extends React.Component {
   renderLocationTab() {
     let l = null;
     try {
-      console.log(this.props.campaignNotes.notes)
       l = this.props.campaignNotes.notes.location.text;
     }
     catch (e) {

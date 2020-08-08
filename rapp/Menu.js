@@ -12,39 +12,52 @@ export class Menu extends React.Component {
   }
   render() {
     return (
-      <div className={"Menu" + (this.props.right ? " right" : "")}>
-        <button onMouseEnter={() => this.toggleDropdown()}
-            onMouseLeave={() => this.toggleDropdown() }>
-          { !this.props.right && <i className="material-icons">menu</i> }
-          <span>{this.props.label}</span>
-          { !!this.props.right && <i className="material-icons">menu</i> }
-        </button>
-        { this.state.dropdownShown && (
-          <ul onMouseEnter={() => this.toggleDropdown()}
-              onMouseLeave={() => this.toggleDropdown()}
-              onClick={() => this.toggleDropdown()}>
-            {this.props.children}
-          </ul>
-        )}
+      <div className={this.myClassName}
+          onMouseEnter={() => this.toggleDropdown()}
+          onMouseLeave={() => this.toggleDropdown()}
+          onClick={() => this.toggleDropdown()}>
+        { this.props.children[0] }
+        { this.state.dropdownShown && this.props.children.slice(1) }
       </div>
     )
+  }
+  get myClassName() {
+    return "Menu" + (this.props.orientation === "right" ? " right" : "")
   }
   toggleDropdown() {
     this.setState((oldState) => ({ dropdownShown: !oldState.dropdownShown }))
   }
 }
 
-export class MenuItem extends React.Component {
-  render() {
-    return (
-      <li className="MenuItem" onClick={(event) => this.handleClick(event)}>
-        {this.props.children}
-      </li>
-    )
-  }
-  handleClick(event) {
-    this.props.onClick && this.props.onClick(event)
-  }
+export const DefaultMenu = (props) => {
+  return (
+    <Menu orientation={props.orientation}>
+      <MenuButton>
+        <i className="material-icons">menu</i> <span>{props.label}</span>
+      </MenuButton>
+      <ul>
+        {props.children}
+      </ul>
+    </Menu>
+  )
+}
+
+export const MenuButton = (props) => {
+  return (
+    <button className="MenuButton">
+      {props.children}
+      <i className="material-icons">menu</i> <span>{props.label}</span>
+    </button>
+  )
+}
+
+export const MenuItem = (props) => {
+  console.log('render menu item', props)
+  return (
+    <li className="MenuItem" onClick={(event) => props.onClick && props.onClick(event)}>
+      {props.children}
+    </li>
+  )
 }
 
 export default Menu
