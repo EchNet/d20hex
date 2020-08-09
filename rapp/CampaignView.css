@@ -5,10 +5,37 @@
 }
 .CampaignView header {
   flex: 0 1 auto;
+  height: 42px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
   padding: 5px 10px;
+  display: flex;
+  justify-content: space-between;
+  background-color: #f8f8f8;
   border-bottom: ridge 3px #cccccc;
+  font-size: 18px;
+}
+.CampaignView section.fillBottom {
+  flex: 1 1 auto;
+  position: relative;
+}
+.CampaignView .toolLayer {
+  width: 100%;
+  height: 0;
+  position: absolute;
+  top: 0;
+  z-index: 10;
+}
+.CampaignView .dayValue {
+  color: #aa2aaa;
+  font-weight: 600;
+}
+.CampaignView .campaignName {
+  color: #aa2aaa;
+  font-weight: 600;
+}
+.CampaignView .whereValue {
+  font-style: italic;
 }

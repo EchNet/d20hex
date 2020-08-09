@@ -33,7 +33,7 @@ export const DefaultMenu = (props) => {
   return (
     <Menu orientation={props.orientation}>
       <MenuButton>
-        <i className="material-icons">menu</i> <span>{props.label}</span>
+        <span>{props.label}</span>
       </MenuButton>
       <ul>
         {props.children}
@@ -46,13 +46,11 @@ export const MenuButton = (props) => {
   return (
     <button className="MenuButton">
       {props.children}
-      <i className="material-icons">menu</i> <span>{props.label}</span>
     </button>
   )
 }
 
 export const MenuItem = (props) => {
-  console.log('render menu item', props)
   return (
     <li className="MenuItem" onClick={(event) => props.onClick && props.onClick(event)}>
       {props.children}

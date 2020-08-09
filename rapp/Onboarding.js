@@ -2,7 +2,7 @@ import * as React from "react"
 import { connect } from 'react-redux';
 
 import actions from "./actions"
-import Menu from "./Menu"
+import { MenuButton } from "./Menu"
 import Modal from "./Modal"
 import SingleTextValueForm from "./SingleTextValueForm"
 import HexGridRenderer from "./HexGridRenderer"
@@ -32,7 +32,7 @@ export class Onboarding extends React.Component {
             <img className="logo" src="/static/img/logo.png" height="120" alt="d20hex"/>
           </div>
           <div className="rightSide">
-            <Menu label={this.props.userName}/>
+            <MenuButton>{ this.props.userName }</MenuButton>
           </div>
         </header>
         <div className="canvas">

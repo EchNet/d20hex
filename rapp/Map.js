@@ -245,9 +245,10 @@ class DragGesture {
 }
 
 class BackgroundPaintGesture extends DragGesture {
-  constructor(mapComponent, fillStyle) {
+  constructor(mapComponent, fillStyle, hex) {
     super(mapComponent)
     this.fillStyle = fillStyle;
+    this.enterHex(hex);
   }
   enterHex(hex) {
     this.mapComponent.assignBackgroundColorToHex(hex, this.fillStyle)

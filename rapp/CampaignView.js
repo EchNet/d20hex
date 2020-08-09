@@ -4,22 +4,30 @@ import { Link } from "react-router-dom";
 
 import apiConnector from "./connectors/api"
 import actions from "./actions"
-import AdminView from "./AdminView"
-import CharactersView from "./CharactersView"
-import ActionView from "./ActionView"
-import {DefaultMenu, MenuItem} from "./Menu"
-import UserMenu from "./UserMenu"
+import ChronicleView from "./ChronicleView"
+import Map from "./Map"
+import MapToolbox from "./MapToolbox"
+import RosterView from "./RosterView"
+import TicketTool from "./TicketTool"
+import TimeLabel from "./TimeLabel"
+import { Menu, MenuButton, MenuItem } from "./Menu"
 import "./CampaignView.css"
 
+const ADMIN_TOOLS = {  // These values are accessible only by admin.
+  "map": 1,
+  "ticket": 1
+}
 
 export class CampaignView extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {
-      actionViewShown: true,
-      charactersViewShown: false,
-      adminViewShown: false
+    this.state = { visibleTool: "map" }
+  }
+  static getDerivedStateFromProps(props, state) {
+    if (!props.campaign.can_manage && ADMIN_TOOLS[state.visibleTool]) {
+      return { visibleTool: null }
     }
+    return null;
   }
   componentDidMount() {
     this.props.dispatch({ type: actions.WANT_CHARACTERS })
@@ -27,48 +35,153 @@ export class CampaignView extends React.Component {
   render() {
     return (
       <div className="CampaignView">
-        { this.renderHeader() }
-        { this.state.actionViewShown && <ActionView/> }
-        { this.state.adminViewShown && <AdminView/> }
-        { this.state.charactersViewShown && <CharactersView/> }
+        <header>
+          { this.renderViewMenu() }
+          { this.renderCurrentLocation() }
+          { this.renderCurrentTime() }
+        </header>
+        <section className="fillBottom">
+          <Map/>
+          <div className="toolLayer">
+            { this.state.visibleTool === "map" && <MapToolbox/> }
+            { this.state.visibleTool === "ticket" &&
+                <TicketTool onClose={() => this.handleToolClose()}/> }
+            { this.state.visibleTool === "chronicles" && <ChronicleView/> }
+            { this.state.visibleTool === "roster" && <RosterView/> }
+          </div>
+        </section>
       </div>
     )
   }
-  renderHeader() {
+  renderViewMenu() {
     return (
-      <header>
-        <div className="left">
-          <DefaultMenu label={this.props.campaign.name }>
-            <MenuItem onClick={() => this.showActionView()}>
-              The Action
-            </MenuItem>
-            <MenuItem onClick={() => this.showCharactersView()}>
-              Characters
-            </MenuItem>
-            { this.props.campaign.can_manage && 
-              <MenuItem onClick={() => this.showAdminView()}>
-                Admin
-              </MenuItem> }
-            <MenuItem onClick={() => this.closeCampaign()}>
-              <Link to="/">
-                Exit Campaign
-              </Link>
-            </MenuItem>
-          </DefaultMenu>
-        </div>
-        <div><img src="/static/img/favicon-32x32.png"/></div>
-        <UserMenu/>
-      </header>
+      <Menu>
+        <MenuButton>
+          <i className="material-icons">menu</i> Menu
+        </MenuButton>
+        <ul>
+          { !!this.props.campaign.can_manage &&
+            this.renderToolToggleMenuItem("map", "Map Tool") }
+          { !!this.props.campaign.can_manage &&
+            this.renderToolToggleMenuItem("ticket", "Ticketing Tool") }
+          { this.renderToolToggleMenuItem("roster", "Roster") }
+          { this.renderToolToggleMenuItem("chronicles", "Chronicles") }
+          <MenuItem onClick={() => this.closeCampaign()}>
+            <Link to="/">
+              Exit Campaign
+            </Link>
+          </MenuItem>
+        </ul>
+      </Menu>
     )
   }
-  showActionView() {
-    this.setState({ actionViewShown: true, charactersViewShown: false, adminViewShown: false })
+  renderToolToggleMenuItem(toolName, toolLabel) {
+    return !this.props.campaign.can_manage && ADMIN_TOOLS[toolName]
+      ? null : (
+        <MenuItem onClick={() => this.showHideTool(toolName)}>
+          { this.state.visibleTool === toolName ? "Hide" : "Show"} {toolLabel}
+        </MenuItem>
+      )
   }
-  showCharactersView() {
-    this.setState({ actionViewShown: false, charactersViewShown: true, adminViewShown: false })
+  showHideTool(toolName) {
+    this.setState((oldState) =>
+        ({ visibleTool: oldState.visibleTool === toolName ? null : toolName }))
   }
-  showAdminView() {
-    this.setState({ actionViewShown: false, charactersViewShown: false, adminViewShown: true })
+  handleToolClose() {
+    this.setState({ visibleTool: this.props.campaign.can_manage ? "map" : "" })
+  }
+  renderCurrentTime() {
+    try {
+      return <TimeLabel time={this.props.campaignNotes.notes.time.json}/>
+    }
+    catch (e) {
+      return <TimeLabel/>
+    }
+  }
+  renderCurrentLocation() {
+    try {
+      return (
+        <div>
+          <span className="campaignName">{ this.props.campaign.name }</span> : <span> </span>
+          <span className="whereValue">{this.props.campaignNotes.notes.location.text}</span>
+        </div>
+      )
+    }
+    catch (e) {
+      return <div><span>(No location set)</span></div>
+    }
+  }
+  renderTimeCard() {
+    let priorText = "";
+    try {
+      priorText = this.props.campaignNotes.notes.time.text;
+    }
+    catch (e) {
+    }
+    return (
+      <div className="card">
+        <div>{ priorText }</div>
+        { this.props.campaign.can_manage && this.renderTimeForm() }
+      </div>
+    )
+  }
+  renderTimeForm() {
+    return (
+      <form onSubmit={(event) => this.handleTimeFormSubmit(event)}>
+        <input ref="dayInput" placeholder="Day"/>
+        <input ref="hourInput" placeholder="Hour"/>
+        <input ref="minuteInput" placeholder="Minute"/>
+        <input ref="secondInput" placeholder="Second"/>
+        <textarea ref="timeTextInput" placeholder="What's going on"/>
+        <input type="submit"/>
+      </form>
+    )
+  }
+  handleTimeFormSubmit(event) {
+    event.preventDefault();
+    this.props.dispatch({ type: actions.CREATE_NOTE, data: {
+      topic: "time",
+      text: this.refs.timeTextInput.value,
+      json: { 
+        day: this.refs.dayInput.value,
+        hour: this.refs.hourInput.value,
+        minute: this.refs.minuteInput.value,
+        second: this.refs.secondInput.value
+      }
+    }})
+    this.setState({ timeCardShown: false })
+  }
+  renderLocationCard() {
+    return (
+      <div className="card right">
+        <form onSubmit={(event) => this.handleLocationFormSubmit(event)}>
+          <input type="hidden" name="topic" value="location" />
+          <div>
+            <input type="text" name="text" placeholder="Where"
+                  value={this.state.locationInput}
+                  onChange={(event) => this.handleLocationInputChange(event)}/>
+          </div>
+          <input type="submit" disabled={this.state.locationInput.length > 0 ? "" : "disabled"}/>
+        </form>
+      </div>
+    )
+  }
+  handleLocationInputChange(event) {
+    const locationInputValue = event.target.value;
+    this.setState({ locationInput: locationInputValue })
+  }
+  handleLocationFormSubmit(event) {
+    event.preventDefault();
+    this.props.dispatch({ type: actions.CREATE_NOTE, data: {
+      topic: "location", text: this.state.locationInput
+    }})
+    this.setState({ locationCardShown: false, locationInput: "" })
+  }
+  handleNoteFormSubmit(event) {
+    event.preventDefault();
+    this.setState({ locationCardShown: false, timeCardShown: false });
+    console.log(event, event.target);
+    this.props.dispatch({ type: actions.CREATE_NOTE, data: event.form })
   }
   closeCampaign() {
     this.props.dispatch({ type: actions.CLOSE_CAMPAIGN })

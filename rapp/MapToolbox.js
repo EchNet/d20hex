@@ -31,6 +31,7 @@ export class MapToolbox extends React.Component {
         "token|url(http://ech.net/img/d20hex/necrogirl.png)",
         "token|url(http://ech.net/img/d20hex/wizard.png)",
         "token|url(http://ech.net/img/d20hex/telly.png)",
+        "token|url(http://ech.net/img/d20hex/telly2.jpg)",
         "token|url(http://ech.net/img/d20hex/chunk.jpg)",
         "token|url(http://ech.net/img/d20hex/monk.png)"
       ]

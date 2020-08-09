@@ -107,6 +107,10 @@ class PlayerLobby extends React.Component {
       props: { ticket }
     })
   }
+  // TODO: provide way for manager to change campaign name.
+  handleNewCampaignName(name) {
+    this.props.dispatch({ type: actions.UPDATE_CAMPAIGN, props: { name }})
+  }
 }
 
 const mapState = (state) => {
