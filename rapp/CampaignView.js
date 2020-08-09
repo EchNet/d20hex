@@ -15,6 +15,7 @@ import "./CampaignView.css"
 
 const ADMIN_TOOLS = {  // These values are accessible only by admin.
   "map": 1,
+  "player": 1,
   "ticket": 1
 }
 
@@ -85,10 +86,13 @@ export class CampaignView extends React.Component {
   }
   showHideTool(toolName) {
     this.setState((oldState) =>
-        ({ visibleTool: oldState.visibleTool === toolName ? null : toolName }))
+        ({ visibleTool: oldState.visibleTool === toolName ? this.defaultTool : toolName }))
   }
   handleToolClose() {
-    this.setState({ visibleTool: this.props.campaign.can_manage ? "map" : "" })
+    this.setState({ visibleTool: this.defaultTool })
+  }
+  get defaultTool() {
+    return this.props.campaign.can_manage ? "map" : "";
   }
   renderCurrentTime() {
     try {
@@ -137,20 +141,6 @@ export class CampaignView extends React.Component {
       </form>
     )
   }
-  handleTimeFormSubmit(event) {
-    event.preventDefault();
-    this.props.dispatch({ type: actions.CREATE_NOTE, data: {
-      topic: "time",
-      text: this.refs.timeTextInput.value,
-      json: { 
-        day: this.refs.dayInput.value,
-        hour: this.refs.hourInput.value,
-        minute: this.refs.minuteInput.value,
-        second: this.refs.secondInput.value
-      }
-    }})
-    this.setState({ timeCardShown: false })
-  }
   renderLocationCard() {
     return (
       <div className="card right">
@@ -165,23 +155,6 @@ export class CampaignView extends React.Component {
         </form>
       </div>
     )
-  }
-  handleLocationInputChange(event) {
-    const locationInputValue = event.target.value;
-    this.setState({ locationInput: locationInputValue })
-  }
-  handleLocationFormSubmit(event) {
-    event.preventDefault();
-    this.props.dispatch({ type: actions.CREATE_NOTE, data: {
-      topic: "location", text: this.state.locationInput
-    }})
-    this.setState({ locationCardShown: false, locationInput: "" })
-  }
-  handleNoteFormSubmit(event) {
-    event.preventDefault();
-    this.setState({ locationCardShown: false, timeCardShown: false });
-    console.log(event, event.target);
-    this.props.dispatch({ type: actions.CREATE_NOTE, data: event.form })
   }
   closeCampaign() {
     this.props.dispatch({ type: actions.CLOSE_CAMPAIGN })
