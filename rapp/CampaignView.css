@@ -27,7 +27,21 @@
   height: 0;
   position: absolute;
   top: 0;
-  z-index: 10;
+  z-index: 5;
+}
+.CampaignView .overTopLeft, .CampaignView .overCenter {
+  position: absolute;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+.CampaignView .overTopLeft {
+  top: 10px;
+  left: 10px;
+}
+.CampaignView .overCenter {
+  top: 52px;
+  left: 50%;
+  max-width: 85%;
+  transform: translateX(-50%);
 }
 .CampaignView .dayValue {
   color: #aa2aaa;

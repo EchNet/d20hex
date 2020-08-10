@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import apiConnector from "./connectors/api"
 import actions from "./actions"
 import ChronicleView from "./ChronicleView"
+import DiceView from "./DiceView"
 import Map from "./Map"
 import MapToolbox from "./MapToolbox"
 import RosterView from "./RosterView"
@@ -13,10 +14,11 @@ import TimeLabel from "./TimeLabel"
 import { Menu, MenuButton, MenuItem } from "./Menu"
 import "./CampaignView.css"
 
-const ADMIN_TOOLS = {  // These values are accessible only by admin.
+const GM_TOOLS = {  // These values are accessible only by the GM.
   "map": 1,
   "player": 1,
-  "ticket": 1
+  "ticket": 1,
+  "chronicles": 1
 }
 
 export class CampaignView extends React.Component {
@@ -25,7 +27,7 @@ export class CampaignView extends React.Component {
     this.state = { visibleTool: "map" }
   }
   static getDerivedStateFromProps(props, state) {
-    if (!props.campaign.can_manage && ADMIN_TOOLS[state.visibleTool]) {
+    if (!props.isGM && GM_TOOLS[state.visibleTool]) {
       return { visibleTool: null }
     }
     return null;
@@ -44,11 +46,16 @@ export class CampaignView extends React.Component {
         <section className="fillBottom">
           <Map/>
           <div className="toolLayer">
-            { this.state.visibleTool === "map" && <MapToolbox/> }
+            { this.state.visibleTool === "map" &&
+                <div class="overTopLeft"><MapToolbox/></div> }
             { this.state.visibleTool === "ticket" &&
-                <TicketTool onClose={() => this.handleToolClose()}/> }
-            { this.state.visibleTool === "chronicles" && <ChronicleView/> }
-            { this.state.visibleTool === "roster" && <RosterView/> }
+                <div class="overCenter"><TicketTool onClose={() => this.handleToolClose()}/></div> }
+            { this.state.visibleTool === "chronicles" &&
+                <div class="overCenter"><ChronicleView/></div> }
+            { this.state.visibleTool === "roster" &&
+                <div class="overCenter"><RosterView/></div> }
+            { this.state.visibleTool === "dice" && 
+                <div class="overCenter"><DiceView/></div> }
           </div>
         </section>
       </div>
@@ -61,12 +68,11 @@ export class CampaignView extends React.Component {
           <i className="material-icons">menu</i> Menu
         </MenuButton>
         <ul>
-          { !!this.props.campaign.can_manage &&
-            this.renderToolToggleMenuItem("map", "Map Tool") }
-          { !!this.props.campaign.can_manage &&
-            this.renderToolToggleMenuItem("ticket", "Ticketing Tool") }
+          { this.renderToolToggleMenuItem("map", "Map Tool") }
+          { this.renderToolToggleMenuItem("ticket", "Ticketing Tool") }
           { this.renderToolToggleMenuItem("roster", "Roster") }
           { this.renderToolToggleMenuItem("chronicles", "Chronicles") }
+          { this.renderToolToggleMenuItem("dice", "Dice Roller") }
           <MenuItem onClick={() => this.closeCampaign()}>
             <Link to="/">
               Exit Campaign
@@ -77,7 +83,7 @@ export class CampaignView extends React.Component {
     )
   }
   renderToolToggleMenuItem(toolName, toolLabel) {
-    return !this.props.campaign.can_manage && ADMIN_TOOLS[toolName]
+    return !this.props.isGM && GM_TOOLS[toolName]
       ? null : (
         <MenuItem onClick={() => this.showHideTool(toolName)}>
           { this.state.visibleTool === toolName ? "Hide" : "Show"} {toolLabel}
@@ -85,14 +91,16 @@ export class CampaignView extends React.Component {
       )
   }
   showHideTool(toolName) {
-    this.setState((oldState) =>
-        ({ visibleTool: oldState.visibleTool === toolName ? this.defaultTool : toolName }))
+    this.setState((oldState) => ({
+      visibleTool: (oldState.visibleTool !== toolName)
+          ? toolName
+          : (toolName === "map" || !this.props.isGM ? "" : "map")
+    }))
   }
   handleToolClose() {
-    this.setState({ visibleTool: this.defaultTool })
-  }
-  get defaultTool() {
-    return this.props.campaign.can_manage ? "map" : "";
+    this.setState((oldState) => ({
+      visibleTool: (oldState.visibleTool === "map" || !this.props.isGM ? "" : "map")
+    }))
   }
   renderCurrentTime() {
     try {
@@ -125,7 +133,7 @@ export class CampaignView extends React.Component {
     return (
       <div className="card">
         <div>{ priorText }</div>
-        { this.props.campaign.can_manage && this.renderTimeForm() }
+        { this.props.isGM && this.renderTimeForm() }
       </div>
     )
   }
@@ -161,6 +169,6 @@ export class CampaignView extends React.Component {
   }
 }
 const mapState = (state) => {
-  return Object.assign({}, state);
+  return Object.assign({ isGM: state.campaign.can_manage }, state);
 }
 export default connect(mapState)(CampaignView)

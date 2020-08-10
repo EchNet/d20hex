@@ -30,7 +30,7 @@ class PlayerLobby extends React.Component {
           <div className="campaignCreatorView">
             Created by <span className="value">{campaign.creator.name}</span>
             <span> </span>
-            { campaign.can_manage && <span className="tag">manager</span> }
+            { campaign.can_manage && <span className="tag">GM</span> }
           </div>
         </div>
       </Link>
