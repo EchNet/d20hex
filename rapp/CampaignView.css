@@ -18,6 +18,7 @@
   font-size: 18px;
 }
 .CampaignView section.fillBottom {
+  height: 100px;
   flex: 1 1 auto;
   position: relative;
 }
