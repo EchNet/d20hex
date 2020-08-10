@@ -9,6 +9,7 @@ import BaseReducerDispatcher from "./reducers/base"
 import MapReducerDispatcher from "./reducers/map"
 import NavReducerDispatcher from "./reducers/nav"
 import NotesReducerDispatcher from "./reducers/notes"
+import PlayersReducerDispatcher from "./reducers/players"
 
 let DEBUG = config("DEBUG");
 
@@ -252,6 +253,7 @@ reducerDispatchers = reducerDispatchers.concat([
   new MapReducerDispatcher(store, mapEventEmitter),
   new NavReducerDispatcher(),
   new NotesReducerDispatcher(store),
+  new PlayersReducerDispatcher(store),
   new ReducerDispatcherPrime(store)
 ])
 store.dispatch({ type: actions.START_APP })

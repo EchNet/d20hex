@@ -1,25 +1,40 @@
 import * as React from "react"
 import { connect } from 'react-redux';
 
+import actions from "./actions"
 import apiConnector from "./connectors/api"
-import "./TicketTool.css"
+import "./PlayerRoster.css"
 
 
-export class TicketTool extends React.Component {
+export class PlayerRoster extends React.Component {
   constructor(props) {
     super(props)
     this.state = {}
   }
   componentDidMount() {
-    this.generateTicket();
+    this.props.dispatch({ type: actions.WANT_CAMPAIGN_PLAYERS })
+    this.generateTicket()
   }
   render() {
     return (
-      <div className="TicketTool">
-        <h3>User Ticketing</h3>
+      <div className="PlayerRoster">
+        <div className="closeButtonContainer">
+          <button onClick={() => this.props.onClose && this.props.onClose()}>X</button>
+        </div>
+        <h3>Players</h3>
+        <table>
+          <thead>
+            <tr><th>Name</th><th>ID</th><th>Is GM?</th></tr>
+          </thead>
+          <tbody>
+            { this.props.campaignPlayers.map((ele) => this.renderPlayerRow(ele)) }
+          </tbody>
+        </table>
+        <hr/>
+        <h3>Invite More Players</h3>
         <div className="ticketContainer">
           <input type="text" readOnly="readOnly" className="ticketValue" ref="ticketValue" value={this.state.ticket}/>
-          <a href=" " title="Copy to clipboard" onClick={(e) => this.handleCopy(e)}>
+          <a href=" " title="Copy to clipboard" onClick={(e) => this.handleCopyTicket(e)}>
             <i className="material-icons">content_copy</i>
           </a>
         </div>
@@ -29,12 +44,20 @@ export class TicketTool extends React.Component {
         </div>
         <div className="buttonContainer">
           <input type="submit" onClick={() => this.generateTicket()} value="Generate a new ticket"/>
-          <button onClick={() => this.props.onClose && this.props.onClose()}>Close</button>
         </div>
       </div>
     )
   }
-  handleCopy(e) {
+  renderPlayerRow(player) {
+    return (
+      <tr key={player.id}>
+        <td>{ player.name }</td>
+        <td>{ player.id }</td>
+        <td><input type="checkbox" defaultChecked={player.can_manage ? "checked" : ""}/></td>
+      </tr>
+    )
+  }
+  handleCopyTicket(e) {
     event.preventDefault();
     this.refs.ticketValue.select()
     this.refs.ticketValue.setSelectionRange(0, 9999);
@@ -64,6 +87,7 @@ export class TicketTool extends React.Component {
   }
 }
 const mapState = (state) => {
-  return Object.assign({}, state);
+  const campaignPlayers = (state.campaign && state.campaign.players) || [];
+  return Object.assign({ campaignPlayers }, state);
 }
-export default connect(mapState)(TicketTool)
+export default connect(mapState)(PlayerRoster)

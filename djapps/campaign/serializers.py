@@ -60,3 +60,26 @@ class NoteSerializer(serializers.ModelSerializer):
         "text",
         "created_on",
     )
+
+
+class CampaignPlayerSerializer(serializers.Serializer):
+  class Meta:
+    model = PlayerCampaignMembership
+    fields = (
+        "id",
+        "name",
+        "can_manage",
+    )
+
+  id = serializers.SerializerMethodField()
+  name = serializers.SerializerMethodField()
+  can_manage = serializers.SerializerMethodField()
+
+  def get_id(self, obj):
+    return obj.player.id
+
+  def get_name(self, obj):
+    return obj.player.name
+
+  def get_can_manage(self, obj):
+    return obj.can_manage

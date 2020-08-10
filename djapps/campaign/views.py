@@ -10,13 +10,13 @@ from rest_framework.response import Response
 
 from character.serializers import CharacterSerializer
 from player.models import Player
-from player.serializers import PlayerSerializer
 from utils.token import TokenCodec
 
 from .models import Campaign, PlayerCampaignMembership
 from .permissions import (IsSuperuser, IsPlayerOwner)
 from .serializers import (
     CampaignSerializer,
+    CampaignPlayerSerializer,
     NewCampaignSerializer,
     NoteSerializer,
     PlayerCampaignMembershipSerializer,
@@ -139,3 +139,12 @@ class CampaignNotesView(generics.ListAPIView):
     campaign_id = self.kwargs.get("campaign_id")
     campaign = get_object_or_404(Campaign.objects.all(), id=campaign_id)
     return campaign.notes.all().order_by("created_on")
+
+
+class CampaignPlayersView(generics.ListAPIView):
+  serializer_class = CampaignPlayerSerializer
+
+  def get_queryset(self):
+    campaign_id = self.kwargs.get("campaign_id")
+    campaign = get_object_or_404(Campaign.objects.all(), id=campaign_id)
+    return PlayerCampaignMembership.objects.filter(campaign=campaign).order_by("player__name")

@@ -90,6 +90,9 @@ class ApiConnector {
   getNotesForCampaign(campaign) {
     return this._doGet(`/api/1.0/campaign/${campaign.id}/notes`)
   }
+  getPlayersForCampaign(campaign) {
+    return this._doGet(`/api/1.0/campaign/${campaign.id}/players`)
+  }
   createNote(campaign, topic, json, text) {
     return this._doPost(`/api/1.0/player`, {
         "campaign": campaign.id,

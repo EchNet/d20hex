@@ -1,4 +1,7 @@
 import actions from "../actions"
+import config from "../config"
+
+let DEBUG = config("DEBUG");
 
 export class BaseReducerDispatcher {
   constructor(store) {

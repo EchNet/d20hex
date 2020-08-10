@@ -1,0 +1,75 @@
+.PlayerRoster {
+  background: white;
+  padding: 20px;
+  width: 540px;
+  border: solid 1px #dddddd;
+  border-radius: 12px;
+  position: relative;
+}
+.PlayerRoster .closeButtonContainer {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  background-color: white;
+}
+.PlayerRoster .closeButtonContainer button {
+  border: solid 1px white;
+  font-size: 18px;
+}
+.PlayerRoster .closeButtonContainer button:hover {
+  border-color: #cccccc;
+}
+.PlayerRoster table {
+  width: 100%;
+  padding: 6px;
+}
+.PlayerRoster thead {
+  border-bottom: solid 1px #cccccc;
+}
+.PlayerRoster hr {
+  border-top: solid 1px #888888;
+  margin: 20px 0;
+}
+.PlayerRoster h3 {
+  font-size: 18px;
+  text-align: center;
+}
+.PlayerRoster .ticketContainer {
+  margin: 14px 0;
+  text-align: center;
+  font-size: 16px;
+}
+.PlayerRoster .ticketValue {
+  border: solid 1px #dddddd;
+  padding: 2px;
+  width: 425px;
+}
+.PlayerRoster .ticketContainer .material-icons {
+  color: black;
+  border: solid 1px #dddddd;
+  background: #dddddd;
+  padding: 3px;
+  margin-left: 2px;
+  font-size: 16px;
+  transform: translateY(2px);
+  cursor: pointer;
+}
+.PlayerRoster .messageContainer {
+  height: 60px;
+  margin: 14px 0;
+  overflow: hidden;
+}
+.PlayerRoster .instructions {
+  font-size: 14px;
+}
+.PlayerRoster .error {
+  font-size: 16px;
+  color: red;
+}
+.PlayerRoster .buttonContainer {
+  margin: 5px;
+  text-align: center;
+  display: flex;
+  justify-content: space-around;
+}

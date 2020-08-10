@@ -30,6 +30,8 @@ export const actions = {
   "MAP_KNOWN": "mapKnown",
   "WANT_NOTES": "wantNotes",
   "NOTES_KNOWN": "notesKnown",
+  "WANT_CAMPAIGN_PLAYERS": "wantCampaignPlayers",
+  "CAMPAIGN_PLAYERS_KNOWN": "campaignPlayersKnown",
   "SET_BACKGROUND": "setBackground",
   "ECHO_BACKGROUND": "echoBackground",
   "SELECT_TOOL": "selectTool",

@@ -8,8 +8,8 @@ import ChronicleView from "./ChronicleView"
 import DiceView from "./DiceView"
 import Map from "./Map"
 import MapToolbox from "./MapToolbox"
+import PlayerRoster from "./PlayerRoster"
 import RosterView from "./RosterView"
-import TicketTool from "./TicketTool"
 import TimeLabel from "./TimeLabel"
 import { Menu, MenuButton, MenuItem } from "./Menu"
 import "./CampaignView.css"
@@ -47,15 +47,15 @@ export class CampaignView extends React.Component {
           <Map/>
           <div className="toolLayer">
             { this.state.visibleTool === "map" &&
-                <div class="overTopLeft"><MapToolbox/></div> }
-            { this.state.visibleTool === "ticket" &&
-                <div class="overCenter"><TicketTool onClose={() => this.handleToolClose()}/></div> }
+                <div className="overTopLeft"><MapToolbox/></div> }
+            { this.state.visibleTool === "player" &&
+                <div className="overCenter"><PlayerRoster onClose={() => this.handleToolClose()}/></div> }
             { this.state.visibleTool === "chronicles" &&
-                <div class="overCenter"><ChronicleView/></div> }
+                <div className="overCenter"><ChronicleView/></div> }
             { this.state.visibleTool === "roster" &&
-                <div class="overCenter"><RosterView/></div> }
+                <div className="overCenter"><RosterView/></div> }
             { this.state.visibleTool === "dice" && 
-                <div class="overCenter"><DiceView/></div> }
+                <div className="overCenter"><DiceView/></div> }
           </div>
         </section>
       </div>
@@ -69,7 +69,7 @@ export class CampaignView extends React.Component {
         </MenuButton>
         <ul>
           { this.renderToolToggleMenuItem("map", "Map Tool") }
-          { this.renderToolToggleMenuItem("ticket", "Ticketing Tool") }
+          { this.renderToolToggleMenuItem("player", "Player Roster") }
           { this.renderToolToggleMenuItem("roster", "Roster") }
           { this.renderToolToggleMenuItem("chronicles", "Chronicles") }
           { this.renderToolToggleMenuItem("dice", "Dice Roller") }
