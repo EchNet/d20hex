@@ -10,7 +10,7 @@ export class DiceView extends React.Component {
   render() {
     return (
       <div className="DiceView">
-        <iframe src="http://d20srd.org/extras/d20dicebag/"></iframe>
+        <iframe src={`${window.location.protocol}//d20srd.org/extras/d20dicebag/`}></iframe>
       </div>
     )
   }
