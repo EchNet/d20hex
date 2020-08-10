@@ -18,7 +18,7 @@ export class TicketTool extends React.Component {
       <div className="TicketTool">
         <h3>User Ticketing</h3>
         <div className="ticketContainer">
-          <input type="text" className="ticketValue" ref="ticketValue" value={this.state.ticket}/>
+          <input type="text" readOnly="readOnly" className="ticketValue" ref="ticketValue" value={this.state.ticket}/>
           <a href=" " title="Copy to clipboard" onClick={(e) => this.handleCopy(e)}>
             <i className="material-icons">content_copy</i>
           </a>
@@ -43,7 +43,7 @@ export class TicketTool extends React.Component {
   get instructions() {
     return (
       "Copy this string and send it to the players you wish to allow into your campaign. " +
-      "Tell them to enter it through the form under \"Join a Campaign.\" " +
+      "They may enter it under \"Join a Campaign.\" " +
       "Tickets expire 3 days from issue."
     )
   }
