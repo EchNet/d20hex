@@ -67,7 +67,7 @@ export class Map extends React.Component {
           canvas.height = canvas.clientHeight;
           resized = true;
         }
-        if (canvas.height != canvas.clientWidth) {
+        if (canvas.width != canvas.clientWidth) {
           canvas.width = canvas.clientWidth;
           resized = true;
         }
