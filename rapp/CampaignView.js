@@ -24,7 +24,7 @@ const GM_TOOLS = {  // These values are accessible only by the GM.
 export class CampaignView extends React.Component {
   constructor(props) {
     super(props)
-    this.state = { visibleTool: "map" }
+    this.state = { visibleTool: "map", zoom: 0 }
   }
   static getDerivedStateFromProps(props, state) {
     if (!props.isGM && GM_TOOLS[state.visibleTool]) {
@@ -44,7 +44,7 @@ export class CampaignView extends React.Component {
           { this.renderCurrentTime() }
         </header>
         <section className="fillBottom">
-          <Map/>
+          <Map zoom={this.state.zoom}/>
           <div className="toolLayer">
             { this.state.visibleTool === "map" &&
                 <div className="overTopLeft"><MapToolbox/></div> }
@@ -54,7 +54,14 @@ export class CampaignView extends React.Component {
                 <div className="overCenter"><ChronicleView/></div> }
             { this.state.visibleTool === "roster" &&
                 <div className="overCenter"><RosterView/></div> }
-            <div style={this.state.visibleTool === "dice" ? {} : {visibility: "hidden"}} className="overCenter"><DiceView/></div> }
+            <div style={this.state.visibleTool === "dice" ? {} : {visibility: "hidden"}} className="overCenter"><DiceView/></div>
+            <div className="overBottomRight">
+              <div className="zoomer">
+                Zoom &nbsp;
+                <input type="number" value={this.state.zoom} min="0" max="2" step="1"
+                    onChange={(e) => this.setState({ zoom: parseInt(e.target.value) })} />
+              </div>
+            </div>
           </div>
         </section>
       </div>

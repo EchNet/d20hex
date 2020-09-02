@@ -3,31 +3,49 @@ import { connect } from 'react-redux';
 
 import actions from "./actions"
 import { mapEventEmitter } from "./stores"
-import { HexGridPath, HexGridRenderer } from "./HexGridRenderer"
+import { HexGridGeometry, HexGridPath, HexGridRenderer } from "./HexGridRenderer"
 import Token from "./Token"
 import "./Map.css"
 
+function zoomToRadius(zoom) {
+  switch (zoom) {
+  case 0:
+    return 30;
+  case 1:
+    return 25;
+  default:
+    return 20;
+  }
+}
 
 export class Map extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      geometry: new HexGridGeometry({ radius: zoomToRadius(props.zoom) }),
       dragGesture: null,
       hoverHex: null,
-      selectedToken: null
+      selectedToken: null,
+      dirty: true
     }
-    this.initialDraw = false;
     this.boundWindowResizeHandler = this.handleWindowResize.bind(this)
     this.boundBackgroundRedrawHandler = this.handleBackgroundRedraw.bind(this)
     this.boundKeyPressHandler = this.handleKeyPress.bind(this)
   }
   static getDerivedStateFromProps(props, state) {
+    let derivedState = null; 
+    if (zoomToRadius(props.zoom) != state.geometry.radius) {
+      derivedState = {
+        dirty: true,
+        geometry: new HexGridGeometry({ radius: zoomToRadius(props.zoom) })
+      }
+    }
     // If the selected token is deleted, remove the halo.
     if (state.selectedToken &&
         !props.tokens.find((token) => token.uuid == state.selectedToken.uuid)) {
-      return { selectedToken: null, dragGesture: null }
+      derivedState = Object.assign(derivedState || {}, { selectedToken: null, dragGesture: null })
     }
-    return null;
+    return derivedState;
   }
   componentDidMount() {
     window.addEventListener("resize", this.boundWindowResizeHandler)
@@ -36,7 +54,6 @@ export class Map extends React.Component {
     if (this.props.bgMap) {
       this.rescaleCanvas()
       this.drawBackground()
-      this.initialDraw = true;
     }
     else {
       // Trigger loading of map data as needed.
@@ -44,10 +61,9 @@ export class Map extends React.Component {
     }
   }
   componentDidUpdate() {
-    if (!this.initialDraw && this.props.bgMap) {
+    if (this.props.bgMap && this.state.dirty) {
       this.rescaleCanvas()
       this.drawBackground()
-      this.initialDraw = true;
     }
   }
   componentWillUnmount() {
@@ -77,12 +93,15 @@ export class Map extends React.Component {
   }
   drawBackground() {
     new HexGridRenderer(this.refs.backgroundCanvas, {
-      bgMap: this.props.bgMap
+      bgMap: this.props.bgMap,
+      radius: this.radius
     }).clear().drawGrid()
+    this.setState({ dirty: false })
   }
   renderOneBackgroundHex(hex) {
     new HexGridRenderer(this.refs.backgroundCanvas, {
-      bgMap: this.props.bgMap
+      bgMap: this.props.bgMap,
+      radius: this.radius
     }).drawHex(hex)
   }
   render() {
@@ -99,6 +118,7 @@ export class Map extends React.Component {
         <div className="layer">
           { (this.props.tokens || []).map((token) =>
             <Token key={token.uuid} token={token}
+                geometry={this.state.geometry}
                 selected={this.state.selectedToken == token}
                 onClick={(event) => this.handleTokenClick(event)}/>) }
         </div>
@@ -124,10 +144,12 @@ export class Map extends React.Component {
       </div>
     )
   }
+  get radius() {
+    return zoomToRadius(this.props.zoom)
+  }
   handleWindowResize() {
     if (this.rescaleCanvas()) {
       this.drawBackground();
-      this.initialDraw = true;
     }
   }
   handleBackgroundRedraw(hex) {
@@ -197,7 +219,9 @@ export class Map extends React.Component {
     }
   }
   getBoundingHexOfEvent(event) {
-    return new HexGridRenderer(this.refs.gestureCanvas).getBoundingHex(Map.eventPoint(event))
+    return new HexGridRenderer(this.refs.gestureCanvas, {
+      radius: this.radius
+    }).getBoundingHex(Map.eventPoint(event))
   }
   clearAllFeedback() {
     new HexGridRenderer(this.refs.gestureCanvas).clear()
@@ -282,7 +306,8 @@ class TokenMoveGesture extends DragGesture {
     new HexGridRenderer(this.mapComponent.refs.gestureCanvas, {
       strokeStyle: "rgba(192,80,0,0.5)",
       fillStyle: "rgba(192,80,0,0.5)",
-      lineWidth: 1
+      lineWidth: 1,
+      radius: this.mapComponent.radius
     }).clear().drawPath(this.path)
   }
 }

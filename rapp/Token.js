@@ -1,8 +1,6 @@
 import * as React from "react"
 import { connect } from 'react-redux';
 
-import { HexGridGeometry } from "./HexGridRenderer"
-
 const HALO_GAP = 2;
 const HALO_THICKNESS = 3;
 
@@ -13,11 +11,10 @@ export class Token extends React.Component {
     const label = valueParts[0];
     const digits = label.length;
     const fillStyle = valueParts[1];
-    const geometry = new HexGridGeometry();
-    const tokenDiameter = geometry.unitDistance;
+    const tokenDiameter = this.props.geometry.unitDistance;
     const haloDiameter = tokenDiameter + (HALO_GAP*2) + (HALO_THICKNESS*2);
     const positionParts = token.position.split(":")
-    let hex = geometry.locateHex({ row: positionParts[0], col: positionParts[1] });
+    let hex = this.props.geometry.locateHex({ row: positionParts[0], col: positionParts[1] });
     return (
       <div className="TokenHalo"
           style={{
