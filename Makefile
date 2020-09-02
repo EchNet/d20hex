@@ -1,9 +1,5 @@
 # Make commands for development
 # 
-# `make djsetup` install required Python modules.
-# `make djbuild` generates required migrations.
-# `make djtest` runs automated Python tests.
-#
 # `make djrun` runs the Django server, listening on port 8000.
 # `make celery` runs a Celery worker.  Needs to be restarted manually when code changes.
 # `make rrun` runs the React webpack server, listening on port 3000.
