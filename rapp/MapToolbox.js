@@ -16,7 +16,7 @@ export class MapToolbox extends React.Component {
         "bg|#848484", "bg|#bda878", "bg|#449944", "bg|#7686ee", "bg|"
       ],
       counterToolChoices: [
-        "counter|black", "counter|#b00", "counter|#808"
+        "counter|black", "counter|#b00", "counter|#808", "function|reset"
       ],
       tokenToolChoices: [
         "token|url(http://ech.net/img/d20hex/wizard.png)",
@@ -55,7 +55,7 @@ export class MapToolbox extends React.Component {
             choices={this.state.bgToolChoices}
             onSelect={(value) => this.selectNewTool(value)}/>
         <PaletteGroup paletteValue={this.props.selectedTool} 
-            label={this.props.counterValue}
+            labels={this.props.counterValues}
             choices={this.state.counterToolChoices}
             onSelect={(value) => this.selectNewTool(value)}/>
         <PaletteGroup paletteValue={this.props.selectedTool} 

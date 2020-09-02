@@ -1,6 +1,8 @@
 import * as React from "react"
+import { connect } from "react-redux";
 
 import "./PaletteGroup.css"
+import actions from "./actions"
 
 export class PaletteGroup extends React.Component {
   constructor(props) {
@@ -26,7 +28,7 @@ export class PaletteGroup extends React.Component {
     const valueParts = value.split("|")
     const classes = ["cell"].concat(this.extraCellClasses(valueParts))
     const styles = this.parseStyles(valueParts)
-    const label = this.props.label || ""; 
+    const label = this.parseLabel(valueParts)
     return (
       <div key={value} className={classes.join(" ")} style={styles}
           onClick={(event) => this.handleCellClick(value)}>{label}</div>
@@ -35,23 +37,40 @@ export class PaletteGroup extends React.Component {
   extraCellClasses(valueParts) {
     return valueParts.length > 1 && valueParts[1] == "" ? ["white"] : []
   }
+  parseLabel(valueParts) {
+    if (valueParts[0] === "function") {
+      return String.fromCharCode(0x27f3);
+    }
+    if (this.props.labels) {
+      return this.props.labels[valueParts[1]] || "1";
+    }
+    return "";
+  }
   parseStyles(valueParts) {
     const styles = {}
-    if (valueParts.length > 1) {
+    if (valueParts[0] === "function") {
+      styles.color = "black";
+    }
+    else if (valueParts.length > 1) {
       if (valueParts[1].startsWith("url(")) {
         styles.background = valueParts[1];
         styles.backgroundSize = "cover";
       }
       else {
-        styles.backgroundColor = valueParts[1]
-      }
+        styles.backgroundColor = valueParts[1] }
     }
     return styles;
   }
   handleCellClick(value) {
-    this.props.onSelect && this.props.onSelect(value)
-    this.setState({ choices: this.rearrangeChoices(value), forceClose: true })
-    setTimeout(() => { this.setState({ forceClose: false }) }, 200)
+    if (value === "function|reset") {
+      const valueParts = this.state.choices[0].split("|")
+      this.props.dispatch({ type: actions.RESET_COUNTER_VALUE, props: { fillStyle: valueParts[1] }})
+    }
+    else {
+      this.props.onSelect && this.props.onSelect(value)
+      this.setState({ choices: this.rearrangeChoices(value), forceClose: true })
+      setTimeout(() => { this.setState({ forceClose: false }) }, 200)
+    }
   }
   rearrangeChoices(value) {
     let newChoices = this.state.choices.filter((ele) => ele != value)
@@ -59,6 +78,7 @@ export class PaletteGroup extends React.Component {
     return newChoices;
   }
 }
-
-export default PaletteGroup;
-
+const mapState = (state) => {
+  return Object.assign({ isGM: state.campaign.can_manage }, state);
+}
+export default connect(mapState)(PaletteGroup)

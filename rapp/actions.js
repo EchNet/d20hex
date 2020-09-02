@@ -41,7 +41,8 @@ export const actions = {
   "MODIFY_TOKEN": "modifyToken",
   "DELETE_TOKEN": "deleteToken",
   "CREATE_NOTE": "createNote",
-  "ECHO_NOTE": "echoNote"
+  "ECHO_NOTE": "echoNote",
+  "RESET_COUNTER_VALUE": "resetCounterValue"
 }
 
 export default actions

@@ -42,8 +42,7 @@ class ReducerDispatcherPrime extends BaseReducerDispatcher {
         bgMap: null,
         mapKnown: false,
         tokens: [],
-        selectedTool: "grabber",
-        counterValue: 1
+        selectedTool: "grabber"
       })
       echoConnector.broadcast({
         type: "uc",

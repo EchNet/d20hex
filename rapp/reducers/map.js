@@ -10,6 +10,14 @@ export class MapReducerDispatcher extends BaseReducerDispatcher {
     super(state)
     this.mapEventEmitter = mapEventEmitter;
   }
+  selectCampaign(state, campaign) {
+    var counterValues = {}
+    try {
+      counterValues = JSON.parse(localStorage.getItem("counterValues")) || {}
+    }
+    catch (e) {}
+    return this.updateState(state, { counterValues })
+  }
   wantMap(state) {
     if (!state.mapKnown) {
       this.handleApiCall(apiConnector.getMapForCampaign(state.campaign), actions.MAP_KNOWN)
@@ -92,9 +100,17 @@ export class MapReducerDispatcher extends BaseReducerDispatcher {
   }
   // Author the modification of a counter.
   placeCounter(state, props) {
-    const value = `${state.counterValue},${props.fillStyle}`
-    state = this.updateState(state, { counterValue: state.counterValue + 1 })
-    return this.placeToken(state, Object.assign({}, props, { value }))
+    const counterValue = state.counterValues[props.fillStyle] || 1;
+    const tokenValue = `${counterValue},${props.fillStyle}`
+    state.counterValues[props.fillStyle] = counterValue + 1;
+    localStorage.setItem("counterValues", JSON.stringify(state.counterValues));
+    state = this.updateState(state, { counterValues: Object.assign({}, state.counterValues) })
+    return this.placeToken(state, Object.assign({}, props, { value: tokenValue }))
+  }
+  resetCounterValue(state, props) {
+    state.counterValues[props.fillStyle] = 1;
+    localStorage.setItem("counterValues", JSON.stringify(state.counterValues));
+    return this.updateState(state, { counterValues: Object.assign({}, state.counterValues) })
   }
   // Author the deletion of a token.
   deleteToken(state, props) {
