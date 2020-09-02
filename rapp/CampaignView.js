@@ -54,8 +54,7 @@ export class CampaignView extends React.Component {
                 <div className="overCenter"><ChronicleView/></div> }
             { this.state.visibleTool === "roster" &&
                 <div className="overCenter"><RosterView/></div> }
-            { this.state.visibleTool === "dice" && 
-                <div className="overCenter"><DiceView/></div> }
+            <div style={this.state.visibleTool === "dice" ? {} : {visibility: "hidden"}} className="overCenter"><DiceView/></div> }
           </div>
         </section>
       </div>
