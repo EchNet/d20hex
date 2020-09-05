@@ -27,7 +27,6 @@ export class ChronicleView extends React.Component {
   }
   get latestEvent() {
     try {
-    console.log(this.props.campaignNotes.notes.time);
       return this.props.campaignNotes.notes.time.text;
     }
     catch (e) {
@@ -140,7 +139,6 @@ export class ChronicleView extends React.Component {
   handleNoteFormSubmit(event) {
     event.preventDefault();
     this.setState({ locationCardShown: false, timeCardShown: false });
-    console.log(event, event.target);
     this.props.dispatch({ type: actions.CREATE_NOTE, data: event.form })
   }
 }

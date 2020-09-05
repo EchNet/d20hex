@@ -6,6 +6,9 @@ const HALO_THICKNESS = 3;
 
 export class Token extends React.Component {
   render() {
+    if (!this.props.geometry) {
+      return null;
+    }
     const token = this.props.token;
     const valueParts = token.value.split(",")
     const label = valueParts[0];

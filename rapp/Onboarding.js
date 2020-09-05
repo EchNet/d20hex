@@ -5,25 +5,11 @@ import actions from "./actions"
 import { MenuButton } from "./Menu"
 import Modal from "./Modal"
 import SingleTextValueForm from "./SingleTextValueForm"
-import HexGridRenderer from "./HexGridRenderer"
+import HexGridCanvas from "./HexGridCanvas"
 import "./Onboarding.css"
 
 
 export class Onboarding extends React.Component {
-  componentDidMount() {
-    this.updateCanvas()
-  }
-  componentDidUpdate() {
-    this.updateCanvas()
-  }
-  updateCanvas() {
-    const canvas = this.refs.canvas;
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
-    const hgr = new HexGridRenderer(canvas);
-    hgr.clear()
-    hgr.drawGrid()
-  }
   render() {
     return (
       <div className="Onboarding">
@@ -36,7 +22,7 @@ export class Onboarding extends React.Component {
           </div>
         </header>
         <div className="canvas">
-          <canvas ref="canvas"></canvas>
+          <HexGridCanvas/>
         </div>
         <Modal>
           <div className="titlebar">
