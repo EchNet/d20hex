@@ -54,7 +54,8 @@ export class CampaignView extends React.Component {
                 <div className="overCenter"><ChronicleView/></div> }
             { this.state.visibleTool === "roster" &&
                 <div className="overCenter"><RosterView/></div> }
-            <div style={this.state.visibleTool === "dice" ? {} : {visibility: "hidden"}} className="overCenter"><DiceView/></div>
+            { this.state.diceViewCreated &&
+              <div style={this.state.visibleTool === "dice" ? {} : {visibility: "hidden"}} className="overCenter"><DiceView/></div> }
             <div className="overBottomRight">
               <div className="zoomer">
                 Zoom &nbsp;
@@ -78,7 +79,7 @@ export class CampaignView extends React.Component {
           { this.renderToolToggleMenuItem("player", "Player Roster") }
           { this.renderToolToggleMenuItem("roster", "Roster") }
           { this.renderToolToggleMenuItem("chronicles", "Chronicles") }
-          { this.renderToolToggleMenuItem("dice", "Dice Roller") }
+          { this.renderToolToggleMenuItem("dice", "Dice Bag") }
           <MenuItem onClick={() => this.closeCampaign()}>
             <Link to="/">
               Exit Campaign
@@ -100,7 +101,8 @@ export class CampaignView extends React.Component {
     this.setState((oldState) => ({
       visibleTool: (oldState.visibleTool !== toolName)
           ? toolName
-          : (toolName === "map" || !this.props.isGM ? "" : "map")
+          : (toolName === "map" || !this.props.isGM ? "" : "map"),
+      diceViewCreated: oldState.diceViewCreated || toolName === "dice"
     }))
   }
   handleToolClose() {
