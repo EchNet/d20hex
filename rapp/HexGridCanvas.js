@@ -76,6 +76,7 @@ export class HexGridCanvas extends React.Component {
           width: this.refs.canvas.width,
           height: this.refs.canvas.height
         })
+        console.log(this.props.type, newGeometry)
         this.props.onGeometryChange(newGeometry)
       }
       if (geometryChanged || !oldState.geometry || this.props.type === "gesture") {

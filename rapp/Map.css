@@ -13,7 +13,10 @@
   overflow: hidden;
 }
 .Map.grabber {
-  cursor: pointer;
+  cursor: grab;
+}
+.Map.recenter {
+  cursor: crosshair;
 }
 .Map .noclick {
   pointer-events: none;

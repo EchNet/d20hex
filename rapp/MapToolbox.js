@@ -44,6 +44,10 @@ export class MapToolbox extends React.Component {
             onClick={(event) => this.selectNewTool("grabber")}>
           <i className="material-icons">touch_app</i>
         </div>
+        <div className={this.classifyTool("recenter")}
+            onClick={(event) => this.selectNewTool("recenter")}>
+          <i className="material-icons">tour</i>
+        </div>
         { !!DEBUG && (
           <div className={this.classifyTool("info")}
               onClick={(event) => this.selectNewTool("info")}>
@@ -51,13 +55,17 @@ export class MapToolbox extends React.Component {
           </div>
         )}
         <hr></hr>
-        <PaletteGroup paletteValue={this.props.selectedTool} 
-            choices={this.state.bgToolChoices}
-            onSelect={(value) => this.selectNewTool(value)}/>
-        <PaletteGroup paletteValue={this.props.selectedTool} 
-            labels={this.props.counterValues}
-            choices={this.state.counterToolChoices}
-            onSelect={(value) => this.selectNewTool(value)}/>
+        { this.props.isGM && (
+          <PaletteGroup paletteValue={this.props.selectedTool} 
+              choices={this.state.bgToolChoices}
+              onSelect={(value) => this.selectNewTool(value)}/>
+        )}
+        { this.props.isGM && (
+          <PaletteGroup paletteValue={this.props.selectedTool} 
+              labels={this.props.counterValues}
+              choices={this.state.counterToolChoices}
+              onSelect={(value) => this.selectNewTool(value)}/>
+        )}
         <PaletteGroup paletteValue={this.props.selectedTool} 
             choices={this.state.tokenToolChoices}
             onSelect={(value) => this.selectNewTool(value)}/>
@@ -73,6 +81,6 @@ export class MapToolbox extends React.Component {
   }
 }
 const mapState = (state) => {
-  return Object.assign({}, state);
+  return Object.assign({ isGM: state.campaign.can_manage }, state);
 }
 export default connect(mapState)(MapToolbox)

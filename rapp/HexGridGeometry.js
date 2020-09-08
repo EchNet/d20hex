@@ -45,15 +45,12 @@ export class HexGridGeometry {
     // Start at the lower left corner and work up toward the upper left corner, then the
     // upper right.  Draw stripes that originate at the edge and proceed 30 degrees downward
     // and to the right.
-    //let row0 = Math.floor(this.height / this.unitDistance) + 1;
-    //let col0 = 0;
-    //let cx0 = 0;
-    //let cy0 = row0 * this.unitDistance;
     const lowerLeft = this._reducePoint(this.center[0], this.center[1], this.width * -0.5, this.height * 0.5)
+    let startingHex = this.locateHex(lowerLeft)
     let row0 = lowerLeft.row;
     let col0 = lowerLeft.col;
-    let cx0 = 0 - lowerLeft.xoffset;
-    let cy0 = this.height - lowerLeft.yoffset;
+    let cx0 = startingHex.cx;
+    let cy0 = startingHex.cy;
 
     for (let stripeCount = 0; cx0 < this.width + this.hexSize; ++stripeCount) {
       let cx = cx0;
@@ -81,17 +78,20 @@ export class HexGridGeometry {
   }
   // Map (row,col) to (cx,cy).
   locateHex(hexPosition) {
-    const cRow = this.center[0];
-    const cCol = this.center[1];
+    // Find the (x,y) coordinates of the center of the center hex.
     const cx = (this.width / 2) - this.center[2];
     const cy = (this.height / 2) - this.center[3];
+
+    // Find the distance from the center hex to the desired hex.
     const distance = this.distanceFromHexToHex(this.center[0], this.center[1], hexPosition.row, hexPosition.col)
+
+    // Add distance offsets to center point.
     return new Hex(hexPosition.row, hexPosition.col, cx + distance.xoffset, cy + distance.yoffset, this)
   }
   // Find the (xoffset,yoffset) difference between the centers of two hexes.
   distanceFromHexToHex(row0, col0, row1, col1) {
-    let xoffset = (col1 - col0) * (this.hexSize * 3 / 2)
-    let yoffset = ((row1 - row0) * this.unitDistance) - (((col1 % 2) - (col0 % 2)) * (this.unitDistance * SINDEG30));
+    let xoffset = (col1 - col0) * (this.hexSize * 1.5)
+    let yoffset = this.unitDistance * ((row1 - row0) - ((Math.abs(col1 % 2) - Math.abs(col0 % 2)) * SINDEG30));
     return { xoffset, yoffset }
   }
   _reducePoint(row, col, xoffset, yoffset) {

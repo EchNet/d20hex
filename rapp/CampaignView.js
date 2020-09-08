@@ -15,7 +15,6 @@ import { Menu, MenuButton, MenuItem } from "./Menu"
 import "./CampaignView.css"
 
 const GM_TOOLS = {  // These values are accessible only by the GM.
-  "map": 1,
   "player": 1,
   "ticket": 1,
   "chronicles": 1

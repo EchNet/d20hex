@@ -11,6 +11,7 @@ export class Map extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      center: props.center,
       dragGesture: null,
       hoverHex: null,
       selectedToken: null,
@@ -50,11 +51,11 @@ export class Map extends React.Component {
           onMouseDown={(event) => this.handleMouseDown(event)}
           onMouseUp={(event) => this.handleMouseUp(event)}>
         <HexGridCanvas className="layer"
-            zoom={this.props.zoom} center={this.props.center}
+            zoom={this.props.zoom} center={this.state.center}
             bgMap={this.props.bgMap}
-            onGeometryChange={(geometry) => this.setState({ geometry })}/>
+            onGeometryChange={(geometry) => { console.log('map', geometry); this.setState({ geometry }); }}/>
         <HexGridCanvas className="layer" type="gesture"
-            zoom={this.props.zoom} center={this.props.center}
+            zoom={this.props.zoom} center={this.state.center}
             dragGesture={this.state.dragGesture}/>
         <div className="layer">
           { (this.props.tokens || []).map((token) =>
@@ -113,6 +114,9 @@ export class Map extends React.Component {
           const token = this.props.tokens.find((ele) => ele.uuid == tokenUuid)
           this.setState({ dragGesture: new TokenMoveGesture(this, token, hex) })
         }
+        break;
+      case "recenter":
+        this.setState({ center: [ hex.row, hex.col, hex.xoffset, hex.yoffset ] })
         break;
       case "bg":
         this.setState({ dragGesture: new BackgroundPaintGesture(this, this.selectedToolValue, hex) })
