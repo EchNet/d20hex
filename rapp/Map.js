@@ -29,7 +29,7 @@ export class Map extends React.Component {
     // If the selected token is deleted, remove the halo.
     if (state.selectedToken &&
         !props.tokens.find((token) => token.uuid == state.selectedToken.uuid)) {
-      return Object.assign(derivedState || {}, { selectedToken: null, dragGesture: null })
+      return { selectedToken: null, dragGesture: null }
     }
     return null;
   }
@@ -53,7 +53,7 @@ export class Map extends React.Component {
         <HexGridCanvas className="layer"
             zoom={this.props.zoom} center={this.state.center}
             bgMap={this.props.bgMap}
-            onGeometryChange={(geometry) => { console.log('map', geometry); this.setState({ geometry }); }}/>
+            onGeometryChange={(geometry) => this.setState({ geometry })}/>
         <HexGridCanvas className="layer" type="gesture"
             zoom={this.props.zoom} center={this.state.center}
             dragGesture={this.state.dragGesture}/>
