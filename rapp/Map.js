@@ -210,7 +210,7 @@ class TokenMoveGesture {
   constructor(mapComponent, token, pathInfo) {
     this.mapComponent = mapComponent;
     this.token = token;
-    this.path = !!pathInfo.row ? new HexGridPath(pathInfo) : pathInfo;
+    this.path = pathInfo.row != null ? new HexGridPath(pathInfo) : pathInfo;
   }
   enterHex(hex) {
     var copy = this.clone();
