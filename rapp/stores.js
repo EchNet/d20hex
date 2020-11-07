@@ -211,7 +211,7 @@ class ReducerDispatcherPrime extends BaseReducerDispatcher {
 
 let reducerDispatchers = []
 export const store = createStore((state = 0, action) => {
-  if (DEBUG) console.log("ACTION", state, action)
+  if (DEBUG) console.log("ACTION", action)
   state = state || {}
   let reducerCount = 0;
   reducerDispatchers.forEach((reducerDispatcher) => {

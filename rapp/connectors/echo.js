@@ -27,10 +27,13 @@ class EchoConnector extends EventEmitter {
   }
   doOpen() {
     return new Promise((resolve, reject) => {
-      this.client = new WebSocket(EchoConnector.getEndpoint())
+      const endpoint = EchoConnector.getEndpoint()
+      if (DEBUG) console.log("OPENING", endpoint)
+      this.client = new WebSocket(endpoint)
       //
       this.client.onopen = () => {
-        this.emit("socket.connect")
+        if (DEBUG) console.log("CONNECTED")
+        this.emit("socket.connect")  // Internal event.
         this.pendingPongs = {}
         if (HEARTBEAT) {
           this.pingTimeout = setTimeout(() => this.pingAndOn(), 2000)
@@ -75,9 +78,8 @@ class EchoConnector extends EventEmitter {
     }
   }
   broadcast(event) {
-    if (DEBUG) console.log("TO BE SENT", event)
     this.open().then((client) => {
-      if (DEBUG) console.log("SENDING", event)
+      if (DEBUG) console.log("BROADCASTING", event)
       client.send(JSON.stringify(event))
     })
   }
