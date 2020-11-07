@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django_extensions.db.models import CreationDateTimeField
 from django.utils.translation import ugettext_lazy as _
@@ -29,7 +30,7 @@ class Note(models.Model):
       verbose_name=_("topic"),
   )
 
-  json = models.JSONField(
+  json = JSONField(
       blank=True,
       null=True,
       verbose_name=_("json"),
