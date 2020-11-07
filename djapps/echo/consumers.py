@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class EchoConsumer(AsyncJsonWebsocketConsumer):
-  def __init__(self, other):
-    super().__init__(other)
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
     self.campaign_id = None
 
   @property
