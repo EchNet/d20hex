@@ -94,43 +94,50 @@ export class HexGridGeometry {
     let yoffset = this.unitDistance * ((row1 - row0) - ((Math.abs(col1 % 2) - Math.abs(col0 % 2)) * SINDEG30));
     return { xoffset, yoffset }
   }
-  _reducePoint(row, col, xoffset, yoffset) {
+  _reducePoint(row, col, x, y) {
     // Given: (row, col) identifies a reference hex.
-    //        (xoffset, yoffset) is an offset from the center of that hex.
-    // Find the equivalent (row, col, xoffset, yoffset) that minimizes (xoffset, yoffset).
-    //
+    //        (x, y) is an offset from the center of that hex.
+    // Find the equivalent (row, col, x, y) that minimizes (x, y).
+
     // Strategy:
-    // Imagine the hex grid sectioned into cells that are bounded on top, bottom, left
-    // and right by parallel horizontal lines that pass through the centers of hexes.
-    // Each cell of this grid contains sections of two hexes.  Adding (xoffset, yoffset)
-    // to the center of the reference hex takes us to a cell.  The residue offsets
-    // relative to the edge of the cell determine which of the two hexes we ended in
-    // and the offset relative to that hex's center.
-    //
-    var xCellSize = this.hexSize * 1.5;
-    var xCellOffset = Math.floor(xoffset / xCellSize)
-    var xResidue = xoffset - (xCellOffset * xCellSize)
+    // Imagine the hex grid sectioned into rectangular cells that are bounded on top, bottom,
+    // left and right by parallel horizontal lines that pass through the centers of hexes.
+    // Each cell of this grid contains sections of two hexes.  "Left-handed" cells are 
+    // those that have top/left and bottom/right corners at centers of hexes, while
+    // "right-handed" are those that have bottom/left and top/right corners at centers of
+    // hexes.  Cell (0,0) is the left-handed one whose top/left corner coincides with the
+    // center of the reference hex.  Adding (x, y) to the center of the reference hex takes
+    // us to a cell and its two corner hexes.  The closer of the two is the target cell.
 
-    var yCellSize = this.unitDistance / 2;
-    var yCellOffset = Math.floor(yoffset / yCellSize)
-    var yResidue = yoffset - (yCellOffset * yCellSize)
+    // The size of the rectangular cells.
+    const xUnitSize = this.hexSize * 1.5;       // width
+    const yUnitSize = this.unitDistance / 2;    // height
 
-    // TODO: illustrate
-    var cellRow = (row * 2) - (col % 2) + yCellOffset;
-    var cellCol = col + xCellOffset;
+    // Calculate the cell coordinates of the two closest hex centers. 
+    const xUnits = Math.floor(x / xUnitSize)
+    const yUnits = Math.floor(y / yUnitSize)
+    const leftHanded = ((xUnits + yUnits) % 2) === 0;
+    const xLeft = xUnits;
+    const yLeft = yUnits + (leftHanded ? 0 : 1)
+    const xRight = xLeft + 1;
+    const yRight = yLeft + (leftHanded ? 1 : -1)
 
-    var slopeOfDividerIsPositive = ((cellRow + cellCol) % 2) != 0;
-    var distanceToDivider = (0.5 + ((slopeOfDividerIsPositive ? yResidue : (yCellSize - yResidue)) / yCellSize)) * this.hexSize;
-    var leftOfDivider = xResidue < distanceToDivider;
+    // Determine which of the two centers is closer.
+    const leftIsCloser =
+      dist(x, y, xLeft * xUnitSize, yLeft * yUnitSize) <
+        dist(x, y, xRight * xUnitSize, yRight * yUnitSize)
+    const xOff = leftIsCloser ? xLeft : xRight;
+    const yOff = leftIsCloser ? yLeft : yRight;
 
-    var destCol = cellCol + (leftOfDivider ? 0 : 1);
-    var destRow = cellRow % 2 == 0 ? (cellRow / 2) + (destCol % 2) : Math.floor((cellRow + 1) / 2)
-    var destXOffset = xResidue - ((leftOfDivider ? 0 : 1) * xCellSize);
-    var destYOffset = yResidue - (((cellRow + destCol) % 2) * yCellSize);
+    // Find the (row,col) coordinates of the closer hex.
+    const oddRow = row % 2 !== 0;
+    row += Math.floor((yOff + (oddRow ? 0 : 1)) / 2)
+    col += xOff;
 
-    return {
-      row: destRow, col: destCol, xoffset: destXOffset, yoffset: destYOffset
-    }
+    // Translate the x and y offsets relative to the center of the target hex.
+    x -= xOff * xUnitSize;
+    y -= yOff * yUnitSize;
+    return { row, col, x, y }
   }
 }
 

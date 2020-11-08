@@ -82,7 +82,7 @@ export class Map extends React.Component {
         color: "black",
         fontSize: "12px"
       }}>
-        { hex.row }:{ hex.col }:{ hex.xoffset }:{ hex.yoffset }
+        { hex.row }:{ hex.col }:{ hex.x }:{ hex.y }
       </div>
     )
   }
@@ -116,7 +116,7 @@ export class Map extends React.Component {
         }
         break;
       case "recenter":
-        this.setState({ center: [ hex.row, hex.col, hex.xoffset, hex.yoffset ] })
+        this.setState({ center: [ hex.row, hex.col, hex.x, hex.y ] })
         break;
       case "bg":
         this.setState({ dragGesture: new BackgroundPaintGesture(this, this.selectedToolValue, hex) })
