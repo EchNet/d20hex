@@ -63,7 +63,7 @@ export class CampaignView extends React.Component {
             <div className="overBottomRight">
               <div className="zoomer">
                 Zoom &nbsp;
-                <input type="number" value={this.state.zoom} min="0" max="2" step="1"
+                <input type="number" value={this.state.zoom} min="-1" max="3" step="1"
                     onChange={(e) => this.setState({ zoom: parseInt(e.target.value) })} />
               </div>
             </div>

@@ -76,7 +76,6 @@ export class HexGridCanvas extends React.Component {
           width: this.refs.canvas.width,
           height: this.refs.canvas.height
         })
-        console.log(this.props.type, newGeometry)
         this.props.onGeometryChange(newGeometry)
       }
       if (geometryChanged || !oldState.geometry || this.props.type === "gesture") {
@@ -172,14 +171,7 @@ export class HexGridCanvas extends React.Component {
 }
 
 function zoomToHexSize(zoom) {
-  switch (zoom || 0) {
-  case 0:
-    return 30;
-  case 1:
-    return 25;
-  default:
-    return 20;
-  }
+  return 30 - (zoom || 0) * 5;
 }
 
 function arraysEqual(a1, a2) {
