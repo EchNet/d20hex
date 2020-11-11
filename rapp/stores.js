@@ -211,18 +211,18 @@ class ReducerDispatcherPrime extends BaseReducerDispatcher {
 
 let reducerDispatchers = []
 export const store = createStore((state = 0, action) => {
-  if (DEBUG) console.log("ACTION", action)
+  const params = 
+    action.props || action.data || action.player || action.campaign ||
+    action.message || action.tools;
+  if (DEBUG) console.log("ACTION", action.type, params)
   state = state || {}
   let reducerCount = 0;
   reducerDispatchers.forEach((reducerDispatcher) => {
     const reducerFunction = reducerDispatcher[action.type]
-    if (typeof reducerFunction == "function") {
-      const newState = reducerFunction.apply(reducerDispatcher, [
-          state,
-          action.props || action.data || action.player || action.campaign ||
-          action.message || action.tools 
-      ])
+    if (typeof reducerFunction === "function") {
+      const newState = reducerFunction.apply(reducerDispatcher, [ state, params ])
       if (newState !== undefined) state = newState;
+      if (DEBUG) console.log("NEW STATE", state)
       reducerCount += 1;
     }
   })
@@ -230,7 +230,7 @@ export const store = createStore((state = 0, action) => {
   return state;
 })
 
-store.subscribe(() => DEBUG && console.log("NEW STATE", store.getState()))
+store.subscribe(() => DEBUG && console.log("-------"));
 
 echoConnector.on("socket.disconnect", () => {
   store.dispatch({ type: actions.SHOW_ERROR, data: "Oops, lost connection to server." });

@@ -16,7 +16,20 @@ export class MapReducerDispatcher extends BaseReducerDispatcher {
       counterValues = JSON.parse(localStorage.getItem("counterValues")) || {}
     }
     catch (e) {}
-    return this.updateState(state, { counterValues })
+
+    var center = [8, 16, 0, 0]
+    try {
+       center = JSON.parse(localStorage.getItem(`center-${campaign.id}`)) || center;
+    }
+    catch (e) {}
+
+    return this.updateState(state, { counterValues, center })
+  }
+  recenter(state, data) {
+    const hex = data;
+    const center = [ hex.row, hex.col, hex.x, hex.y ];
+    localStorage.setItem(`center-${state.campaign.id}`, JSON.stringify(center));
+    return this.updateState(state, { center })
   }
   wantMap(state) {
     if (!state.mapKnown) {

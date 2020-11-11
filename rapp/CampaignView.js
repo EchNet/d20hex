@@ -23,7 +23,10 @@ const GM_TOOLS = {  // These values are accessible only by the GM.
 export class CampaignView extends React.Component {
   constructor(props) {
     super(props)
-    this.state = { visibleTool: "map", zoom: 0 }
+    this.state = {
+      visibleTool: "map",
+      zoom: 0
+    }
   }
   static getDerivedStateFromProps(props, state) {
     if (!props.isGM && GM_TOOLS[state.visibleTool]) {
@@ -43,7 +46,9 @@ export class CampaignView extends React.Component {
           { this.renderCurrentTime() }
         </header>
         <section className="fillBottom">
-          <Map zoom={this.state.zoom}/>
+          { this.props.center && (
+            <Map zoom={this.state.zoom} />
+          )}
           <div className="toolLayer">
             { this.state.visibleTool === "map" &&
                 <div className="overTopLeft"><MapToolbox/></div> }
