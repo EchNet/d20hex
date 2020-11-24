@@ -1,5 +1,8 @@
 import axios from "axios"
 import ImportedCookies from "cookies-js"
+import config from "../config"
+
+const HEARTBEAT = config("HEARTBEAT");
 
 function toQueryString(params) {
   return Object.keys(params).map(
@@ -12,6 +15,9 @@ class ApiConnector {
     this.props = props || {}
     //this.jwt = ImportedCookies.get("jwt")
     //this.jwt_tob = Number(ImportedCookies.get("jwt_tob"))
+    if (HEARTBEAT) {
+      this.pingTimeout = setTimeout(() => this.pingAndOn(), 12000)
+    }
   }
   _doGet(uri, data={}) {
     const salt = Math.random().toString(16).substring(2)
@@ -100,6 +106,10 @@ class ApiConnector {
         "json": json,
         "text": text
     })
+  }
+  pingAndOn() {
+    this._doGet("/ping")
+    this.pingTimeout = setTimeout(() => this.checkPong(uuid), 12000)
   }
 }
 
