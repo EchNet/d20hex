@@ -32,6 +32,7 @@ urlpatterns = [
     path("api/1.0/", include("campaign.urls")),
     path("api/1.0/", include("character.urls")),
     path("api/1.0/", include("player.urls")),
+    path("ping", api_views.PingView.as_view()),
 ]
 
 if settings.SERVE_MEDIA:
