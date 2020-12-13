@@ -45,7 +45,8 @@ export class MapToolbox extends React.Component {
           <i className="material-icons">touch_app</i>
         </div>
         <div className={this.classifyTool("recenter")}
-            onClick={(event) => this.selectNewTool("recenter")}>
+            onClick={(event) => this.selectNewTool("recenter")}
+            onDoubleClick={() => this.props.dispatch({ type: "recenter", data: [0, 0, 0, 0] })}>
           <i className="material-icons">tour</i>
         </div>
         { !!DEBUG && (

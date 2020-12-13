@@ -25,7 +25,6 @@ export class CampaignView extends React.Component {
     super(props)
     this.state = {
       visibleTool: "map",
-      zoom: 0
     }
   }
   static getDerivedStateFromProps(props, state) {
@@ -46,9 +45,7 @@ export class CampaignView extends React.Component {
           { this.renderCurrentTime() }
         </header>
         <section className="fillBottom">
-          { this.props.center && (
-            <Map zoom={this.state.zoom} />
-          )}
+          { this.props.center && <Map/> }
           <div className="toolLayer">
             { this.state.visibleTool === "map" &&
                 <div className="overTopLeft"><MapToolbox/></div> }
@@ -63,8 +60,8 @@ export class CampaignView extends React.Component {
             <div className="overBottomRight">
               <div className="zoomer">
                 Zoom &nbsp;
-                <input type="number" value={this.state.zoom} min="-1" max="3" step="1"
-                    onChange={(e) => this.setState({ zoom: parseInt(e.target.value) })} />
+                <input type="number" value={this.props.zoom} min="-1" max="3" step="1"
+                    onChange={(e) => this.props.dispatch({ type: "zoom", data: parseInt(e.target.value) })} />
               </div>
             </div>
           </div>

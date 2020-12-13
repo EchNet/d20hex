@@ -23,13 +23,30 @@ export class MapReducerDispatcher extends BaseReducerDispatcher {
     }
     catch (e) {}
 
-    return this.updateState(state, { counterValues, center })
+    var zoom = 0;
+    try {
+       zoom = JSON.parse(localStorage.getItem(`zoom-${campaign.id}`)) || zoom;
+    }
+    catch (e) {}
+
+    return this.updateState(state, { counterValues, center, zoom })
   }
   recenter(state, data) {
-    const hex = data;
-    const center = [ hex.row, hex.col, hex.x, hex.y ];
+    let center;
+    if (Array.isArray(data)) {
+      center = data;
+    }
+    else {
+      const hex = data;
+      center = [ hex.row, hex.col, hex.xoffset, hex.yoffset ];
+    }
     localStorage.setItem(`center-${state.campaign.id}`, JSON.stringify(center));
     return this.updateState(state, { center })
+  }
+  zoom(state, data) {
+    const zoom = data;
+    localStorage.setItem(`zoom-${state.campaign.id}`, JSON.stringify(zoom));
+    return this.updateState(state, { zoom })
   }
   wantMap(state) {
     if (!state.mapKnown) {
