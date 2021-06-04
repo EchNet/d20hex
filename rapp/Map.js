@@ -19,8 +19,6 @@ export class Map extends React.Component {
     this.boundKeyPressHandler = this.handleKeyPress.bind(this)
   }
   static defaultProps = {
-    zoom: 0,
-    center: [8, 16, 0, 0],
     selectedTool: "",
     tokens: []
   }
@@ -80,7 +78,7 @@ export class Map extends React.Component {
         color: "black",
         fontSize: "12px"
       }}>
-        { hex.row }:{ hex.col }:{ hex.x }:{ hex.y }
+        { hex.row }:{ hex.col }:{ hex.xoffset }:{ hex.yoffset }
       </div>
     )
   }

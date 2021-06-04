@@ -14,43 +14,47 @@ function dist(x0, y0, x1, y1) {
   return Math.sqrt(sq(y0 - y1) + sq(x1 - x0));
 }
 
+// Type HexCoords is a { row, col } hash that uniquely identifies the position of a grid
+// hex. Hex "rows" zig-zag horizontally, such that a position with an odd col value is higher
+// (has lower y value) than its neighbor to the left in the same row.  Columns, on the other
+// hand, stack linearly.
+
+// Type HexRelativePoint is an array of elements: [ hexRow, hexCol, xoffset, yoffset ]
+// that expresses a point on the map relative to the center of the hex at (hexRow, hexCol).
+
+/**
+ * HexGridGeometry defines the size and position of a grid of hexes and provides methods
+ * for mapping between (x,y) coordinates and hex-relative coordinates.
+ */
 export class HexGridGeometry {
   constructor(options = null) {
     Object.assign(this, {
-      // The length of each side of the regular hexagon, also the radius of a circumscribed circle.
-      hexSize: 28,
-      // The center point, relative to a center hex.
-      center: [0, 0, 0, 0],
+      // Defaults:
+      hexSize: 28, // The length of each side of the regular hexagon.
+      center: [0, 0, 0, 0], // The center point, a HexRelativePoint.
       width: 100,
       height: 100
     }, options)
   }
   get unitDistance() {
     // Unit distance is the distance between corresponding points of any two adjacent hexes.
-    // It is also the diameter of an inscribed circle.  It is also half of the height.
+    // It is also the diameter of an inscribed circle.
     return this.hexSize * SQRT3;
   }
-  getBoundingHex(point) {
-    // Translate (x, y) point to (row, col) hex.
-    return this._reducePoint(
-        this.center[0], this.center[1],
-        this.center[2] - this.width/2 + point.x,
-        this.center[3] - this.height/2 + point.y)
-  }
   traceGrid(callback) {
-    // Vector looking down and to the right:
+    // Visit all of the hexes in view, reporting each to the callback function.
+    // Start at the lower left corner and work up toward the upper left corner, then the
+    // upper right.  Trace stripes that originate at the edge and proceed 30 degrees downward
+    // and to the right. 
+    // Callback parameters:
+    // callback(Hex, numberOfPreviousStripes, numberOfPreviousHexesInTheCurrentStripe)
+
+    // From one hex to the next in stripe:
     const unitDistanceX = this.unitDistance * COSDEG30;
     const unitDistanceY = this.unitDistance * SINDEG30;
 
-    // Start at the lower left corner and work up toward the upper left corner, then the
-    // upper right.  Draw stripes that originate at the edge and proceed 30 degrees downward
-    // and to the right.
-    const lowerLeft = this._reducePoint(this.center[0], this.center[1], this.width * -0.5, this.height * 0.5)
-    let startingHex = this.locateHex(lowerLeft)
-    let row0 = lowerLeft.row;
-    let col0 = lowerLeft.col;
-    let cx0 = startingHex.cx;
-    let cy0 = startingHex.cy;
+    // Find the hex at the lower left corner.
+    let { row: row0, col: col0, cx: cx0, cy: cy0 } = this.getBoundingHex({ x: 0, y: this.height})
 
     for (let stripeCount = 0; cx0 < this.width + this.hexSize; ++stripeCount) {
       let cx = cx0;
@@ -64,7 +68,7 @@ export class HexGridGeometry {
         if (col % 2 == 0) { row += 1 }
         col += 1;
       }
-      if (cy0 > 0.0001 /* != 0 */) {
+      if (cy0 > 0) {
         // Follow the left edge bottom to top.
         cy0 -= this.unitDistance;
         row0 -= 1;
@@ -76,28 +80,44 @@ export class HexGridGeometry {
       }
     }
   }
-  // Map (row,col) to (cx,cy).
-  locateHex(hexPosition) {
+  getBoundingHex(point) {
+    // Map (x, y) point to Hex.
+    const { x, y } = point;
+    const [ row, col, xoffset, yoffset ] = this._reduceHexRelativePoint([
+        this.center[0], this.center[1],
+        this.center[2] - this.width/2 + x,
+        this.center[3] - this.height/2 + y ])
+    const hex = this.locateHex({ row, col })
+    // Also decorate with xoffset, yoffset.
+    hex.xoffset = xoffset;
+    hex.yoffset = yoffset;
+    return hex;
+  }
+  // Construct a Hex for the hex given its (row,col) coordinates.
+  locateHex(hexCoords) {
+    const { row, col } = hexCoords;
+
     // Find the (x,y) coordinates of the center of the center hex.
     const cx = (this.width / 2) - this.center[2];
     const cy = (this.height / 2) - this.center[3];
 
     // Find the distance from the center hex to the desired hex.
-    const distance = this.distanceFromHexToHex(this.center[0], this.center[1], hexPosition.row, hexPosition.col)
+    const distance = this.distanceFromHexToHex(this.center[0], this.center[1], row, col)
 
     // Add distance offsets to center point.
-    return new Hex(hexPosition.row, hexPosition.col, cx + distance.xoffset, cy + distance.yoffset, this)
+    return new Hex(row, col, cx + distance.xoffset, cy + distance.yoffset, this)
   }
   // Find the (xoffset,yoffset) difference between the centers of two hexes.
   distanceFromHexToHex(row0, col0, row1, col1) {
-    let xoffset = (col1 - col0) * (this.hexSize * 1.5)
-    let yoffset = this.unitDistance * ((row1 - row0) - ((Math.abs(col1 % 2) - Math.abs(col0 % 2)) * SINDEG30));
+    let xoffset = (col1 - col0) * this.hexSize * 1.5;
+    let yoffset = (row1 - row0) * this.unitDistance;
+    // Adjust for the offset between adjacent columns.
+    yoffset += (Math.abs(col0 % 2) - Math.abs(col1 % 2)) * this.unitDistance * 0.5;
     return { xoffset, yoffset }
   }
-  _reducePoint(row, col, x, y) {
-    // Given: (row, col) identifies a reference hex.
-    //        (x, y) is an offset from the center of that hex.
-    // Find the equivalent (row, col, x, y) that minimizes (x, y).
+  _reduceHexRelativePoint(hexRelativePoint) {
+    // Find the equivalent HexRelativePoint that minimizes abs(xoffset, yoffset).
+    let [ row, col, xoffset, yoffset ] = hexRelativePoint;
 
     // Strategy:
     // Imagine the hex grid sectioned into rectangular cells that are bounded on top, bottom,
@@ -110,37 +130,47 @@ export class HexGridGeometry {
     // us to a cell and its two corner hexes.  The closer of the two is the target cell.
 
     // The size of the rectangular cells.
-    const xUnitSize = this.hexSize * 1.5;       // width
-    const yUnitSize = this.unitDistance / 2;    // height
+    const xCellSize = this.hexSize * 1.5;       // width
+    const yCellSize = this.unitDistance / 2;    // height
 
-    // Calculate the cell coordinates of the two closest hex centers. 
-    const xUnits = Math.floor(x / xUnitSize)
-    const yUnits = Math.floor(y / yUnitSize)
-    const leftHanded = ((xUnits + yUnits) % 2) === 0;
-    const xLeft = xUnits;
-    const yLeft = yUnits + (leftHanded ? 0 : 1)
-    const xRight = xLeft + 1;
-    const yRight = yLeft + (leftHanded ? 1 : -1)
+    // Find the cell that encloses the target point, relative to the center.
+    const xCellOffset = Math.floor(xoffset / xCellSize)
+    const yCellOffset = Math.floor(yoffset / yCellSize)
+    // Find whether that cell is left- or right- handed.
+    const leftHanded = ((xCellOffset + yCellOffset) % 2) === 0;
 
-    // Determine which of the two centers is closer.
+    // Find the offsets and coordinates of the two corners of the cell that represent the
+    // centers of the left and right hexes.
+    const findCenter = (origRow, origCol, xCellOff, yCellOff) => {
+      const row = origRow + Math.floor((yCellOff + ((origCol % 2) == 0 ? 1 : 0)) / 2);
+      const col = origCol + xCellOff;
+      const xoffset = xCellOff * xCellSize;
+      const yoffset = yCellOff * yCellSize
+      return { row, col, xoffset, yoffset }
+    }
+    const left = findCenter(row, col, xCellOffset, yCellOffset + (leftHanded ? 0 : 1));
+    const right = findCenter(row, col, xCellOffset + 1, yCellOffset + (leftHanded ? 1 : 0));
+
+    // Select the closer of the two centers.
     const leftIsCloser =
-      dist(x, y, xLeft * xUnitSize, yLeft * yUnitSize) <
-        dist(x, y, xRight * xUnitSize, yRight * yUnitSize)
-    const xOff = leftIsCloser ? xLeft : xRight;
-    const yOff = leftIsCloser ? yLeft : yRight;
+      dist(xoffset, yoffset, left.xoffset, left.yoffset) <
+        dist(xoffset, yoffset, right.xoffset, right.yoffset)
+    const closer = leftIsCloser ? left : right;
 
-    // Find the (row,col) coordinates of the closer hex.
-    const oddRow = row % 2 !== 0;
-    row += Math.floor((yOff + (oddRow ? 0 : 1)) / 2)
-    col += xOff;
-
-    // Translate the x and y offsets relative to the center of the target hex.
-    x -= xOff * xUnitSize;
-    y -= yOff * yUnitSize;
-    return { row, col, x, y }
+    // Recompute offsets relative to the selected center.
+    row = closer.row;
+    col = closer.col;
+    xoffset -= closer.xoffset;
+    yoffset -= closer.yoffset;
+    return [ row, col, xoffset, yoffset ]
   }
 }
 
+/**
+ * Hex is a subtype of HexCoords having in addition to row, col properties, 
+ * cx and cy  properties giving the coordinates of the center point of the hex within
+ * the grid canvas.  There is also a describe method that visits the 6 vertexes.
+ */
 class Hex {
   constructor(row, col, cx, cy, geometry) {
     this.row = row;
@@ -149,7 +179,7 @@ class Hex {
     this.cy = cy;
     this.geometry = geometry;
   }
-  // Visit the vertices of the hexagon with center at (cx,cy).
+  // Visit the vertices of the hexagon.
   describe(callback) {
     var x = this.cx, y = this.cy;  // Start at the center.
     var angle = 0;       // Pointing at the vertex to the right.
