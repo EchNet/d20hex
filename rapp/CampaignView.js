@@ -61,7 +61,7 @@ export class CampaignView extends React.Component {
               <div className="zoomer">
                 Zoom &nbsp;
                 <input type="number" value={this.props.zoom} min="-1" max="3" step="1"
-                    onChange={(e) => this.props.dispatch({ type: "zoom", data: parseInt(e.target.value) })} />
+                    onChange={(e) => this.props.dispatch({ type: "zoom", data: e.target.value })} />
               </div>
             </div>
           </div>

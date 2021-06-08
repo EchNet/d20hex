@@ -44,9 +44,15 @@ export class MapReducerDispatcher extends BaseReducerDispatcher {
     return this.updateState(state, { center })
   }
   zoom(state, data) {
-    const zoom = data;
-    localStorage.setItem(`zoom-${state.campaign.id}`, JSON.stringify(zoom));
-    return this.updateState(state, { zoom })
+    var zoom = parseInt(data);
+    if (!isNaN(zoom)) {
+      zoom = Math.floor(zoom);
+      zoom = Math.max(-1, zoom);
+      zoom = Math.min(3, zoom);
+      localStorage.setItem(`zoom-${state.campaign.id}`, JSON.stringify(zoom));
+      return this.updateState(state, { zoom })
+    }
+    return state;
   }
   wantMap(state) {
     if (!state.mapKnown) {
