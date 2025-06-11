@@ -1,7 +1,6 @@
 {
   "name": "d20hex",
   "version": "1.0.0",
-  "main": "index.js",
   "scripts": {
     "test": "npm test",
     "build": "./node_modules/.bin/parcel build rapp/index.js"
@@ -20,22 +19,21 @@
     "node": "12.x"
   },
   "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-react": "^6.24.1",
-    "parcel-bundler": "^1.12.4"
+    "parcel": "^2.0.0-nightly.711"
   },
   "dependencies": {
-    "axios": "^0.19.2",
+    "@babel/preset-env": "^7.14.4",
+    "@babel/preset-react": "^7.13.13",
+    "axios": "^0.21.1",
+    "babel-plugin-transform-class-properties": "^6.24.1",
     "cookies-js": "^1.2.3",
-    "eventemitter3": "^4.0.4",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "react-redux": "^7.2.1",
+    "eventemitter3": "^4.0.7",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
+    "react-redux": "^7.2.4",
     "react-router-dom": "^5.2.0",
-    "redux": "^4.0.5",
-    "uuid": "^8.3.0",
-    "websocket": "^1.0.31"
+    "redux": "^4.1.0",
+    "uuid": "^8.3.2",
+    "websocket": "^1.0.34"
   }
 }

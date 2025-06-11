@@ -16,6 +16,9 @@ coverage
 stats.json
 npm-debug.log
 
+# Parcel
+.parcel-cache/
+
 # Misc.
 .DS_Store
 .idea

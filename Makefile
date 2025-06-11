@@ -39,13 +39,13 @@ package-lock.json: package.json
 	$(NPM) install
 
 rrun: clean package-lock.json
-	./node_modules/.bin/parcel watch rapp/index.html
+	./node_modules/.bin/parcel watch rapp/index.js --dist-dir dist
 
 rtest: package-lock.json
 	@echo React tests not yet implemented.
 
 rdist: package-lock.json
-	./node_modules/.bin/parcel build rapp/index.js
+	./node_modules/.bin/parcel build rapp/index.js --dist-dir dist
 
 clean:
-	rm -rf dist .cache
+	rm -rf dist .parcel-cache
